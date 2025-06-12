@@ -28,62 +28,111 @@ def get_vless_uri():
 
 def generate_config(uri: str):
     """Генерирует конфигурацию config.json на основе VLESS URI."""
-    # Default values from sample
+    # Default values
     cfg = {
         'id': '331564911',
+        'address': '94.131.110.172',
+        'port': 23209,
         'fp': 'random',
         'pbk': 'EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc',
-        'spx': ['yahoo.com'],
+        'sni': 'yahoo.com',
         'sid': '68c55e5189f67c90'
     }
     
     # Парсинг VLESS URI
-    try:
-        parsed = urlparse(uri)
-        if parsed.username:
-            cfg['id'] = parsed.username
-        qs = parse_qs(parsed.query)
-        if 'fp' in qs:
-            cfg['fp'] = qs['fp'][0]
-        if 'pbk' in qs:
-            cfg['pbk'] = qs['pbk'][0]
-        if 'spx' in qs:
-            cfg['spx'] = [qs['spx'][0]]
-        if 'sni' in qs:
-            cfg['spx'] = [qs['sni'][0]]
-        if 'sid' in qs:
-            cfg['sid'] = qs['sid'][0]
-    except Exception as e:
-        print(f"Ошибка парсинга VLESS URI: {e}")
-        print("Используются значения по умолчанию")
+    if uri and uri.startswith('vless://'):
+        try:
+            parsed = urlparse(uri)
+            print(f"Парсинг URI: {uri}")
+            
+            # Извлекаем ID (username)
+            if parsed.username:
+                cfg['id'] = parsed.username
+                print(f"ID: {cfg['id']}")
+            
+            # Извлекаем адрес и порт
+            if parsed.hostname:
+                cfg['address'] = parsed.hostname
+                print(f"Адрес: {cfg['address']}")
+            
+            if parsed.port:
+                cfg['port'] = parsed.port
+                print(f"Порт: {cfg['port']}")
+            
+            # Парсим параметры запроса
+            qs = parse_qs(parsed.query)
+            if 'fp' in qs:
+                cfg['fp'] = qs['fp'][0]
+                print(f"Fingerprint: {cfg['fp']}")
+            if 'pbk' in qs:
+                cfg['pbk'] = qs['pbk'][0]
+                print(f"Public Key: {cfg['pbk'][:20]}...")
+            if 'sni' in qs:
+                cfg['sni'] = qs['sni'][0]
+                print(f"SNI: {cfg['sni']}")
+            if 'sid' in qs:
+                cfg['sid'] = qs['sid'][0]
+                print(f"Short ID: {cfg['sid']}")
+                
+        except Exception as e:
+            print(f"Ошибка парсинга VLESS URI: {e}")
+            print("Используются значения по умолчанию")
+    else:
+        print("VLESS URI не найден, используются значения по умолчанию")
 
+    # Генерация правильной конфигурации для Xray-core
     config = {
+        'log': {
+            'loglevel': 'info'
+        },
         'inbounds': [
             {
                 'port': 1080,
                 'listen': '127.0.0.1',
+                'protocol': 'socks',
+                'sniffing': {
+                    'enabled': True,
+                    'destOverride': ['http', 'tls']
+                },
+                'settings': {
+                    'auth': 'noauth',
+                    'udp': True
+                }
+            }
+        ],
+        'outbounds': [
+            {
                 'protocol': 'vless',
                 'settings': {
-                    'clients': [
-                        {'id': cfg['id']}
-                    ],
-                    'decryption': 'none'
+                    'vnext': [
+                        {
+                            'address': cfg['address'],
+                            'port': cfg['port'],
+                            'users': [
+                                {
+                                    'id': cfg['id'],
+                                    'encryption': 'none'
+                                }
+                            ]
+                        }
+                    ]
                 },
                 'streamSettings': {
                     'network': 'tcp',
                     'security': 'reality',
                     'realitySettings': {
                         'show': False,
-                        'fp': cfg['fp'],
-                        'pbk': cfg['pbk'],
-                        'spx': cfg['spx'],
-                        'sid': cfg['sid']
+                        'fingerprint': cfg['fp'],
+                        'serverName': cfg['sni'],
+                        'publicKey': cfg['pbk'],
+                        'shortId': cfg['sid']
                     }
                 }
             }
-        ],
-        'outbounds': [{'protocol': 'freedom'}]
+        ]
     }
+    
+    print(f"Создание конфигурации для сервера {cfg['address']}:{cfg['port']}")
     with open('config.json', 'w', encoding='utf-8') as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
     print("Конфигурация config.json успешно создана")
@@ -152,9 +201,9 @@ def main():
     # Генерация конфигурации
     generate_config(uri)
 
-    # Настройка прокси
-    os.environ['HTTP_PROXY'] = 'http://127.0.0.1:1080'
-    os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:1080'
+    # Настройка прокси для SOCKS
+    os.environ['HTTP_PROXY'] = 'socks5://127.0.0.1:1080'
+    os.environ['HTTPS_PROXY'] = 'socks5://127.0.0.1:1080'
 
     # Запуск Xray в фоновом режиме
     threading.Thread(target=start_xray, daemon=True).start()
@@ -163,10 +212,16 @@ def main():
     import time
     time.sleep(2)
     
-    # Запуск браузера
+    # Запуск браузера с современным интерфейсом
     print("Запуск браузера...")
-    webview.create_window('Lightweight Browser with VLESS VPN', 'https://www.google.com')
-    webview.start()
+    try:
+        # Пробуем использовать новый интерфейс
+        import src.ui_modern as ui_modern
+        ui_modern.start()
+    except ImportError:
+        # Fallback на старый интерфейс
+        import src.ui as ui
+        ui.start()
 
 
 if __name__ == '__main__':
