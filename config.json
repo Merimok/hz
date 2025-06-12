@@ -1,0 +1,27 @@
+{
+  "inbounds": [
+    {
+      "port": 1080,
+      "listen": "127.0.0.1",
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          { "id": "331564911" }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "fp": "random",
+          "pbk": "EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc",
+          "spx": ["yahoo.com"],
+          "sid": "68c55e5189f67c90"
+        }
+      }
+    }
+  ],
+  "outbounds": [ { "protocol": "freedom" } ]
+}
