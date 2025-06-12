@@ -36,6 +36,7 @@ from src.logger import browser_logger, log_exception
 global_xray_process = None  # Store Xray process for termination
 
 UI_MODULES = [
+    'src.ui_win11',      # Оптимизированный интерфейс для Windows 11
     'src.ui_ultra_modern',
     'src.ui_modern_fixed',
     'src.ui_modern',

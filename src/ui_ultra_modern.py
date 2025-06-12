@@ -46,9 +46,36 @@ class ModernBrowserApi:
         return {'success': True, 'url': url}
         
     def go_back(self):
-        """История назад (эмуляция)."""
+        """История назад."""
         browser_logger.info("История назад")
-        return self.navigate('https://www.google.com')
+        if self.current_window:
+            self.current_window.evaluate_js('window.history.back()')
+            return {'success': True}
+        return {'success': False, 'error': 'Window not initialized'}
+        
+    def go_forward(self):
+        """История вперед."""
+        browser_logger.info("История вперед")
+        if self.current_window:
+            self.current_window.evaluate_js('window.history.forward()')
+            return {'success': True}
+        return {'success': False, 'error': 'Window not initialized'}
+        
+    def refresh(self):
+        """Обновить страницу."""
+        browser_logger.info("Обновление страницы")
+        if self.current_window:
+            self.current_window.evaluate_js('window.location.reload()')
+            return {'success': True}
+        return {'success': False, 'error': 'Window not initialized'}
+        
+    def get_current_url(self):
+        """Получить текущий URL."""
+        browser_logger.info("Получение текущего URL")
+        if self.current_window:
+            url = self.current_window.evaluate_js('window.location.href')
+            return {'success': True, 'url': url}
+        return {'success': False, 'error': 'Window not initialized'}
             
     def go_forward(self):
         """История вперед (эмуляция)."""

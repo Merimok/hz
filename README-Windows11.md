@@ -13,7 +13,9 @@ Ultra-Modern Browser with integrated VLESS VPN support via Xray-core. Optimized 
 - 🖼️ **System Integration** - System tray icon, DPI awareness, and native dialogs
 - 🔄 **UI Fallback System** - 5 levels of cascading UI modules
 - ⚡ **Auto-Configuration** - Automatic Xray download and setup
-- 🌍 **Full Navigation** - Complete browser functionality with bookmarks
+- 🌍 **Full Navigation** - Complete browser functionality with address bar and navigation buttons
+- 🔖 **Bookmarks System** - Quick access to favorite websites
+- 🔄 **Tab Management** - Open, close, and switch between tabs easily
 - 🛡️ **Enhanced Error Handling** - Comprehensive error management
 - 📦 **Portable Mode** - Run without installation, perfect for USB drives
 
