@@ -2,16 +2,16 @@ name: Build Lightweight Browser with VLESS VPN
 on:
   push:
     paths:
-      - 'main.py'
-      - 'vless.txt'
-      - 'config.json'
-      - '.github/workflows/build.yml'
+      - main.py
+      - vless.txt
+      - config.json
+      - .github/workflows/build.yml
   pull_request:
     paths:
-      - 'main.py'
-      - 'vless.txt'
-      - 'config.json'
-      - '.github/workflows/build.yml'
+      - main.py
+      - vless.txt
+      - config.json
+      - .github/workflows/build.yml
 jobs:
   build:
     runs-on: windows-2022
@@ -41,9 +41,4 @@ jobs:
         with:
           name: lightweight-browser-vless
           path: dist/main.exe
-
-  uses: actions/upload-artifact@v3
-  with:
-    name: lightweight-browser-vless
-    path: dist/main
 
