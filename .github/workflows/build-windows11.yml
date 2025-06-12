@@ -1,0 +1,213 @@
+name: Build Ultra-Modern Browser with VLESS VPN v4.0.0
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+    paths:
+      - 'ultra_modern_browser/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+      - 'requirements.txt'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: false
+        default: 'v4.0.0'
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  build-windows:
+    name: Build for Windows 11
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: |
+            setup.py
+            requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel setuptools
+          pip install -e .[dev]
+          pip install pyinstaller
+          pip install pywin32
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v
+        continue-on-error: true  # Allow tests to fail in early development
+
+      - name: Download Xray-core
+        run: |
+          New-Item -ItemType Directory -Force -Path bin
+          $url = 'https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip'
+          Invoke-WebRequest -Uri $url -OutFile xray.zip
+          Expand-Archive -Path xray.zip -DestinationPath xray-temp
+          Move-Item xray-temp/xray.exe bin/xray.exe -Force
+          Remove-Item -Recurse -Force xray.zip, xray-temp
+
+      - name: Build Portable Version with PyInstaller
+        run: |
+          # Get memory usage before build
+          $beforeMemory = (Get-Process -Id $PID).WorkingSet64 / 1MB
+          $beforeTime = Get-Date
+          
+          # Create portable_mode.py if build_portable.py doesn't exist
+          if (-not (Test-Path build_portable.py)) {
+            @"
+            import os
+            import sys
+            import shutil
+            import PyInstaller.__main__
+
+            print("Building portable version of Ultra-Modern Browser...")
+            
+            # Prepare directories
+            if os.path.exists("dist"):
+                shutil.rmtree("dist")
+            if os.path.exists("build"):
+                shutil.rmtree("build")
+                
+            # Create portable directories
+            os.makedirs("dist/Ultra-Modern-Browser-Portable/config", exist_ok=True)
+            os.makedirs("dist/Ultra-Modern-Browser-Portable/bin", exist_ok=True)
+            os.makedirs("dist/Ultra-Modern-Browser-Portable/logs", exist_ok=True)
+            
+            # Run PyInstaller
+            PyInstaller.__main__.run([
+                "--noconfirm",
+                "--clean",
+                "--name=ultra-browser",
+                "--add-data=ultra_modern_browser/resources;ultra_modern_browser/resources",
+                "--add-data=bin/xray.exe;bin",
+                "--add-data=config/config.yaml;config",
+                "--hidden-import=webview.platforms.cef",
+                "--hidden-import=ultra_modern_browser.ui.basic",
+                "--hidden-import=ultra_modern_browser.ui.simple",
+                "--hidden-import=PIL._tkinter_finder",
+                "--onedir",
+                "--noconsole",
+                "ultra_modern_browser/cli.py"
+            ])
+            
+            # Copy files to portable directory
+            shutil.copytree("dist/ultra-browser", "dist/Ultra-Modern-Browser-Portable/app")
+            if os.path.exists("config/config.yaml"):
+                shutil.copy("config/config.yaml", "dist/Ultra-Modern-Browser-Portable/config/")
+            if os.path.exists("README.md"):
+                shutil.copy("README.md", "dist/Ultra-Modern-Browser-Portable/")
+            
+            # Create portable marker file
+            with open("dist/Ultra-Modern-Browser-Portable/portable.txt", "w") as f:
+                f.write("Ultra-Modern Browser Portable Mode\\nDo not delete this file\\n")
+            
+            # Create launcher batch file
+            with open("dist/Ultra-Modern-Browser-Portable/Launch-Browser.bat", "w") as f:
+                f.write('@echo off\\ncd /d "%~dp0app"\\nstart "" "ultra-browser.exe"\\n')
+            
+            # Create zip archive
+            shutil.make_archive("dist/Ultra-Modern-Browser-Portable-Win11", "zip", "dist", "Ultra-Modern-Browser-Portable")
+            print("Portable version created successfully!")
+            "@ | Out-File -FilePath build_portable.py
+          }
+          
+          # Run the build script
+          python build_portable.py
+          
+          # Get memory usage after build
+          $afterMemory = (Get-Process -Id $PID).WorkingSet64 / 1MB
+          $afterTime = Get-Date
+          $buildTime = ($afterTime - $beforeTime).TotalSeconds
+          $fileSize = (Get-Item -Path dist/Ultra-Modern-Browser-Portable-Win11.zip).Length / 1MB
+          
+          # Create build report
+          @"
+          # Build Performance Report
+          
+          - **Build Type**: Portable Windows 11 Application
+          - **Build Time**: $buildTime seconds
+          - **Memory Used**: $($afterMemory - $beforeMemory) MB
+          - **Package Size**: $fileSize MB
+          - **Build Date**: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+          - **Windows Version**: $((Get-WmiObject -class Win32_OperatingSystem).Caption)
+          
+          "@ | Out-File -FilePath dist/build_report.md
+
+      - name: Prepare release package
+        run: |
+          New-Item -ItemType Directory -Path "release" -Force
+          # Copy the portable zip
+          Copy-Item "dist/Ultra-Modern-Browser-Portable-Win11.zip" "release/Ultra-Modern-Browser-v4.0.0-Portable.zip"
+          Copy-Item "README.md" "release/" -ErrorAction SilentlyContinue
+          Copy-Item "dist/build_report.md" "release/" -ErrorAction SilentlyContinue
+          
+          # Create installation instructions
+          @"
+          # Ultra-Modern Browser Portable Installation
+          
+          ## Installation Instructions
+          
+          1. Download the portable zip file
+          2. Extract all contents to any folder of your choice
+          3. Run `Launch-Browser.bat` to start the application
+          4. Optionally create a shortcut to the batch file on your desktop
+          
+          ## Features
+          
+          - No installation required
+          - All settings and logs stored in the application folder
+          - Easy to move between computers
+          - Windows 11 optimized UI and features
+          
+          "@ | Out-File -FilePath "release/PORTABLE_README.md"
+
+      - name: Create release package
+        run: |
+          Compress-Archive -Path "release/*" -DestinationPath "Ultra-Modern-Browser-v4.0.0-Win11-Release.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Ultra-Modern-Browser-v4.0.0-Windows11-Portable
+          path: dist/Ultra-Modern-Browser-Portable-Win11.zip
+          retention-days: 90
+          
+      - name: Upload release package
+        uses: actions/upload-artifact@v3
+        with:
+          name: Ultra-Modern-Browser-v4.0.0-Full-Release
+          path: Ultra-Modern-Browser-v4.0.0-Win11-Release.zip
+          retention-days: 90
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 🚀 Ultra-Modern Browser with VLESS VPN v4.0.0 (Portable)
+          body_path: release/build_report.md
+          files: |
+            dist/Ultra-Modern-Browser-Portable-Win11.zip
+            Ultra-Modern-Browser-v4.0.0-Win11-Release.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

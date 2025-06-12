@@ -1,0 +1,59 @@
+# Ultra-Modern Browser Configuration
+# Windows 11 Edition
+
+# VPN settings
+vpn:
+  # These values will be overwritten by VLESS URI if provided
+  id: "331564911"
+  address: "94.131.110.172" 
+  port: 23209
+  fp: "random"
+  pbk: "EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc"
+  sni: "yahoo.com"
+  sid: "68c55e5189f67c90"
+  
+  # Additional VPN settings
+  auto_start: true
+  reconnect_attempts: 3
+  reconnect_interval: 5  # seconds
+
+# Browser settings
+browser:
+  title: "Ultra-Modern Browser v4.0.0"
+  width: 1280
+  height: 800
+  theme: "modern"  # modern, dark, light
+  default_home: "https://www.google.com"
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+  
+  # UI preferences
+  show_navigation: true
+  show_bookmarks: true
+  show_vpn_status: true
+  show_tabs: true
+  
+  # Features
+  enable_popup_blocker: true
+  enable_ad_blocker: false  # Future feature
+  enable_tracking_protection: true
+  enable_downloads: true
+
+# Logging settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  max_files: 10
+  max_size_mb: 10
+  log_dir: "logs"
+  
+  # Error reporting (Sentry)
+  error_reporting:
+    enabled: false
+    dsn: ""  # Your Sentry DSN
+
+# System settings (Windows 11 specific)
+system:
+  hide_console: true
+  start_with_system: false
+  show_tray_icon: true
+  dpi_aware: true  # Windows DPI awareness
+  portable_mode: false  # If true, store all data in app directory

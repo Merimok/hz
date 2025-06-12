@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra-Modern Browser</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #0099ff;
+            --accent-color: #60cdff;
+            --bg-color: #1f1f1f;
+            --bg-light: #2d2d2d;
+            --bg-lighter: #383838;
+            --text-color: #ffffff;
+            --text-muted: #b0b0b0;
+            --border-color: #444444;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --button-radius: 4px;
+            --card-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .browser-header {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-light);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 12px;
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+
+        .browser-toolbar {
+            display: flex;
+            align-items: center;
+            height: 44px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            margin-right: 12px;
+        }
+
+        .btn {
+            background-color: transparent;
+            color: var(--text-color);
+            border: none;
+            border-radius: var(--button-radius);
+            padding: 8px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn:active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-icon {
+            padding: 8px 10px;
+            margin: 0 2px;
+        }
+
+        .url-bar-container {
+            flex: 1;
+            position: relative;
+            margin: 0 8px;
+        }
+
+        .url-bar {
+            width: 100%;
+            height: 36px;
+            background-color: var(--bg-lighter);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0 16px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .url-bar:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(96, 205, 255, 0.3);
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            margin-left: 12px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected {
+            background-color: var(--success-color);
+        }
+
+        .status-disconnected {
+            background-color: var(--error-color);
+        }
+
+        .browser-menu {
+            margin-left: 8px;
+        }
+
+        .tabs-bar {
+            display: flex;
+            overflow-x: auto;
+            margin-top: 8px;
+            scrollbar-width: thin;
+        }
+
+        .tabs-bar::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .tabs-bar::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            min-width: 180px;
+            max-width: 220px;
+            height: 32px;
+            padding: 0 16px;
+            margin-right: 2px;
+            background-color: var(--bg-light);
+            border-radius: var(--button-radius) var(--button-radius) 0 0;
+            cursor: pointer;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tab.active {
+            background-color: var(--bg-lighter);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .tab-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+        }
+
+        .tab-title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 12px;
+        }
+
+        .tab-close {
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            font-size: 14px;
+            margin-left: 4px;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .new-tab {
+            min-width: 32px;
+            width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .browser-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .browser-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 0;
+            background-color: var(--bg-lighter);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.open {
+            width: 280px;
+        }
+
+        .sidebar-content {
+            padding: 16px;
+            min-width: 260px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--accent-color);
+        }
+
+        .bookmark-item, .history-item {
+            padding: 8px 12px;
+            border-radius: var(--button-radius);
+            margin-bottom: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bookmark-item:hover, .history-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-label {
+            flex: 1;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-light);
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .switch-slider {
+            background-color: var(--accent-color);
+        }
+
+        input:focus + .switch-slider {
+            box-shadow: 0 0 1px var(--accent-color);
+        }
+
+        input:checked + .switch-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Animation for transitions */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* System status bar at bottom */
+        .system-status {
+            height: 24px;
+            background-color: var(--bg-light);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .status-item {
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="browser-header">
+        <div class="browser-toolbar">
+            <div class="nav-buttons">
+                <button class="btn btn-icon" id="backBtn" title="Back">&#8592;</button>
+                <button class="btn btn-icon" id="forwardBtn" title="Forward">&#8594;</button>
+                <button class="btn btn-icon" id="reloadBtn" title="Reload">&#8635;</button>
+                <button class="btn btn-icon" id="homeBtn" title="Home">&#8962;</button>
+            </div>
+            <div class="url-bar-container">
+                <input type="text" id="urlBar" class="url-bar" placeholder="Search or enter website name">
+            </div>
+            <div class="status-container">
+                <div id="statusIndicator" class="status-indicator status-disconnected"></div>
+                <span id="statusText">VPN</span>
+            </div>
+            <div class="browser-menu">
+                <button class="btn btn-icon" id="menuBtn" title="Menu">&#8942;</button>
+                <button class="btn btn-icon" id="sidebarBtn" title="Sidebar">&#9776;</button>
+            </div>
+        </div>
+        <div class="tabs-bar" id="tabsBar">
+            <div class="tab active">
+                <div class="tab-icon">G</div>
+                <div class="tab-title">Google</div>
+                <div class="tab-close">×</div>
+            </div>
+            <div class="tab new-tab" id="newTabBtn">+</div>
+        </div>
+    </div>
+    
+    <div class="browser-content">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Bookmarks</div>
+                    <div id="bookmarksList"></div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">History</div>
+                    <div id="historyList"></div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Settings</div>
+                    <div class="settings-item">
+                        <span class="settings-label">Enable VPN</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="vpnToggle" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-label">Dark Mode</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkModeToggle" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-label">Block Trackers</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="blockTrackersToggle">
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <iframe id="browserFrame" class="browser-frame" src="about:blank"></iframe>
+    </div>
+    
+    <div class="system-status">
+        <div class="status-item">
+            <span id="connectionStatus">Connected</span>
+        </div>
+        <div class="spacer"></div>
+        <div class="status-item" id="dateTime">00:00</div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const backBtn = document.getElementById('backBtn');
+        const forwardBtn = document.getElementById('forwardBtn');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const homeBtn = document.getElementById('homeBtn');
+        const urlBar = document.getElementById('urlBar');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebarBtn = document.getElementById('sidebarBtn');
+        const sidebar = document.getElementById('sidebar');
+        const browserFrame = document.getElementById('browserFrame');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const bookmarksList = document.getElementById('bookmarksList');
+        const historyList = document.getElementById('historyList');
+        const newTabBtn = document.getElementById('newTabBtn');
+        const tabsBar = document.getElementById('tabsBar');
+        const dateTimeDisplay = document.getElementById('dateTime');
+        const vpnToggle = document.getElementById('vpnToggle');
+        
+        // App state
+        let sidebarOpen = false;
+        let currentUrl = 'https://www.google.com';
+        let activeTabId = 'tab-1';
+        let tabs = [
+            { id: 'tab-1', title: 'Google', url: 'https://www.google.com', active: true }
+        ];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial URL
+            browserFrame.src = currentUrl;
+            
+            // Check connection status
+            checkConnection();
+            setInterval(checkConnection, 10000);
+            
+            // Update time
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Load bookmarks and history
+            loadBookmarks();
+            loadHistory();
+            
+            // Setup event listeners
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            backBtn.addEventListener('click', () => {
+                browserFrame.contentWindow.history.back();
+            });
+            
+            forwardBtn.addEventListener('click', () => {
+                browserFrame.contentWindow.history.forward();
+            });
+            
+            reloadBtn.addEventListener('click', () => {
+                browserFrame.contentWindow.location.reload();
+            });
+            
+            homeBtn.addEventListener('click', () => {
+                navigateTo('https://www.google.com');
+            });
+            
+            urlBar.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    navigateTo(urlBar.value);
+                }
+            });
+            
+            sidebarBtn.addEventListener('click', toggleSidebar);
+            
+            browserFrame.addEventListener('load', () => {
+                updateUrlBar();
+                updateTabInfo();
+            });
+            
+            newTabBtn.addEventListener('click', createNewTab);
+            
+            vpnToggle.addEventListener('change', () => {
+                alert('VPN settings can only be changed at startup.');
+                vpnToggle.checked = true; // Revert change
+            });
+        }
+        
+        function updateUrlBar() {
+            try {
+                currentUrl = browserFrame.contentWindow.location.href;
+                urlBar.value = currentUrl;
+                updateTabInfo();
+            } catch (e) {
+                console.error('Error updating URL bar:', e);
+            }
+        }
+        
+        function navigateTo(url) {
+            if (!url) return;
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                if (url.includes('.') && !url.includes(' ')) {
+                    url = 'https://' + url;
+                } else {
+                    url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+                }
+            }
+            
+            try {
+                window.pywebview.api.navigate(url);
+                browserFrame.src = url;
+                currentUrl = url;
+                urlBar.value = url;
+                addToHistory(url);
+                updateTabInfo();
+            } catch (e) {
+                console.error('Error navigating to URL:', e);
+                browserFrame.src = url; // Fallback
+            }
+        }
+        
+        function checkConnection() {
+            try {
+                window.pywebview.api.check_connection().then((result) => {
+                    if (result.vpn) {
+                        statusIndicator.className = 'status-indicator status-connected';
+                        statusText.textContent = 'VPN';
+                        document.getElementById('connectionStatus').textContent = 'VPN Connected';
+                    } else {
+                        statusIndicator.className = 'status-indicator status-disconnected';
+                        statusText.textContent = 'VPN';
+                        document.getElementById('connectionStatus').textContent = 'VPN Disconnected';
+                    }
+                });
+            } catch (e) {
+                console.error('Error checking connection:', e);
+                statusIndicator.className = 'status-indicator status-disconnected';
+            }
+        }
+        
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            sidebar.classList.toggle('open', sidebarOpen);
+        }
+        
+        function loadBookmarks() {
+            try {
+                window.pywebview.api.get_bookmarks().then((bookmarks) => {
+                    bookmarksList.innerHTML = '';
+                    
+                    if (bookmarks && bookmarks.length) {
+                        bookmarks.forEach((bookmark) => {
+                            const item = document.createElement('div');
+                            item.className = 'bookmark-item';
+                            item.textContent = bookmark.title || bookmark.url;
+                            item.title = bookmark.url;
+                            item.addEventListener('click', () => navigateTo(bookmark.url));
+                            bookmarksList.appendChild(item);
+                        });
+                    } else {
+                        bookmarksList.innerHTML = '<div class="bookmark-item">No bookmarks yet</div>';
+                    }
+                });
+            } catch (e) {
+                console.error('Error loading bookmarks:', e);
+                bookmarksList.innerHTML = '<div class="bookmark-item">Error loading bookmarks</div>';
+            }
+        }
+        
+        function loadHistory() {
+            try {
+                window.pywebview.api.get_history().then((history) => {
+                    historyList.innerHTML = '';
+                    
+                    if (history && history.length) {
+                        // Only show last 10 items
+                        history.slice(-10).reverse().forEach((url) => {
+                            const item = document.createElement('div');
+                            item.className = 'history-item';
+                            item.textContent = url;
+                            item.title = url;
+                            item.addEventListener('click', () => navigateTo(url));
+                            historyList.appendChild(item);
+                        });
+                    } else {
+                        historyList.innerHTML = '<div class="history-item">No history yet</div>';
+                    }
+                });
+            } catch (e) {
+                console.error('Error loading history:', e);
+                historyList.innerHTML = '<div class="history-item">Error loading history</div>';
+            }
+        }
+        
+        function addToHistory(url) {
+            try {
+                window.pywebview.api.navigate(url).then(() => {
+                    loadHistory();
+                });
+            } catch (e) {
+                console.error('Error adding to history:', e);
+            }
+        }
+        
+        function createNewTab() {
+            const tabId = 'tab-' + (tabs.length + 1);
+            
+            // Set all tabs to inactive
+            tabs.forEach(tab => tab.active = false);
+            
+            // Add new tab
+            tabs.push({
+                id: tabId,
+                title: 'New Tab',
+                url: 'https://www.google.com',
+                active: true
+            });
+            
+            activeTabId = tabId;
+            
+            // Navigate to Google
+            navigateTo('https://www.google.com');
+            
+            // Update UI
+            renderTabs();
+        }
+        
+        function renderTabs() {
+            // Clear existing tabs
+            tabsBar.innerHTML = '';
+            
+            // Render tabs
+            tabs.forEach(tab => {
+                const tabEl = document.createElement('div');
+                tabEl.className = 'tab' + (tab.active ? ' active' : '');
+                tabEl.id = tab.id;
+                
+                const tabIcon = document.createElement('div');
+                tabIcon.className = 'tab-icon';
+                tabIcon.textContent = tab.title.charAt(0);
+                
+                const tabTitle = document.createElement('div');
+                tabTitle.className = 'tab-title';
+                tabTitle.textContent = tab.title;
+                
+                const tabClose = document.createElement('div');
+                tabClose.className = 'tab-close';
+                tabClose.textContent = '×';
+                tabClose.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
+                });
+                
+                tabEl.appendChild(tabIcon);
+                tabEl.appendChild(tabTitle);
+                tabEl.appendChild(tabClose);
+                
+                tabEl.addEventListener('click', () => switchTab(tab.id));
+                
+                tabsBar.appendChild(tabEl);
+            });
+            
+            // Add new tab button
+            const newTab = document.createElement('div');
+            newTab.className = 'tab new-tab';
+            newTab.id = 'newTabBtn';
+            newTab.textContent = '+';
+            newTab.addEventListener('click', createNewTab);
+            tabsBar.appendChild(newTab);
+        }
+        
+        function switchTab(tabId) {
+            // Find the tab
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+            
+            // Set all tabs to inactive
+            tabs.forEach(t => t.active = false);
+            
+            // Set the selected tab to active
+            tab.active = true;
+            activeTabId = tabId;
+            
+            // Navigate to the tab's URL
+            navigateTo(tab.url);
+            
+            // Update UI
+            renderTabs();
+        }
+        
+        function closeTab(tabId) {
+            // Don't close if it's the last tab
+            if (tabs.length <= 1) return;
+            
+            // Find the tab index
+            const tabIndex = tabs.findIndex(t => t.id === tabId);
+            if (tabIndex === -1) return;
+            
+            // Check if we're closing the active tab
+            const isActive = tabs[tabIndex].active;
+            
+            // Remove the tab
+            tabs.splice(tabIndex, 1);
+            
+            // If we closed the active tab, activate another one
+            if (isActive) {
+                const newActiveTab = tabs[Math.min(tabIndex, tabs.length - 1)];
+                newActiveTab.active = true;
+                activeTabId = newActiveTab.id;
+                navigateTo(newActiveTab.url);
+            }
+            
+            // Update UI
+            renderTabs();
+        }
+        
+        function updateTabInfo() {
+            // Find the active tab
+            const activeTab = tabs.find(t => t.id === activeTabId);
+            if (!activeTab) return;
+            
+            // Update tab info
+            activeTab.url = currentUrl;
+            
+            try {
+                // Try to get page title from iframe
+                const title = browserFrame.contentWindow.document.title;
+                if (title) {
+                    activeTab.title = title;
+                } else {
+                    // Fallback to domain name
+                    try {
+                        const url = new URL(currentUrl);
+                        activeTab.title = url.hostname.replace('www.', '');
+                    } catch {
+                        activeTab.title = 'New Tab';
+                    }
+                }
+            } catch (e) {
+                console.error('Error getting page title:', e);
+                
+                // Fallback to domain name
+                try {
+                    const url = new URL(currentUrl);
+                    activeTab.title = url.hostname.replace('www.', '');
+                } catch {
+                    activeTab.title = 'New Tab';
+                }
+            }
+            
+            // Update UI
+            renderTabs();
+        }
+        
+        function updateDateTime() {
+            const now = new Date();
+            dateTimeDisplay.textContent = now.toLocaleTimeString();
+        }
+    </script>
+</body>
+</html>

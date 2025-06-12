@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import threading
 import webview
@@ -8,21 +9,41 @@ import zipfile
 import io
 from urllib.parse import urlparse, parse_qs
 
+# Создаем папку для логов если её нет
+os.makedirs('logs', exist_ok=True)
+
+# Добавляем текущую папку в PYTHONPATH для импорта src модулей  
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Импортируем систему логирования
+from src.logger import browser_logger, log_exception
+
 
 def get_vless_uri():
-    """Load VLESS URI from environment variable or vless.txt file."""
+    """Загружает VLESS URI из переменной окружения или файла vless.txt."""
+    browser_logger.info("Загрузка VLESS URI...")
+    
     uri = os.getenv('VLESS_URI')
     if not uri:
         try:
             with open('vless.txt', 'r', encoding='utf-8') as f:
                 uri = f.readline().strip()
+            browser_logger.info("VLESS URI загружен из vless.txt")
         except FileNotFoundError:
             try:
                 with open(os.path.join('config', 'vless.txt'), 'r', encoding='utf-8') as f:
                     uri = f.readline().strip()
+                browser_logger.info("VLESS URI загружен из config/vless.txt")
             except FileNotFoundError:
+                browser_logger.error("VLESS URI не найден. Проверьте файл vless.txt или переменную VLESS_URI")
                 print("VLESS URI not found. Check vless.txt file or VLESS_URI environment variable")
                 uri = ''
+        else:
+            browser_logger.info("VLESS URI загружен из переменной окружения")
+    
+    if uri:
+        browser_logger.info(f"VLESS URI успешно загружен (длина: {len(uri)} символов)")
+    
     return uri
 
 
@@ -190,55 +211,106 @@ def start_xray():
 
 
 def main():
-    """Main application function."""
-    print("=== Lightweight Browser with VLESS VPN ===")
+    """Главная функция приложения Ultra-Modern Browser v4.0.0."""
+    browser_logger.info("=== ЗАПУСК УЛЬТРА-СОВРЕМЕННОГО БРАУЗЕРА v4.0.0 (Windows Compatible) ===")
+    print("=== Ultra-Modern Browser with VLESS VPN v4.0.0 ===")
     
-    # Load and check VLESS URI
-    uri = get_vless_uri()
-    if not uri:
-        print("Warning: VLESS URI not configured")
-    
-    # Generate configuration
-    generate_config(uri)
-    
-    # Start Xray in background
-    xray_thread = threading.Thread(target=start_xray)
-    xray_thread.daemon = True
-    xray_thread.start()
-    
-    # UI cascade fallback system
-    ui_modules = [
-        ('src.ui_modern_fixed', 'Modern UI with fixed pywebview 4.0+ compatibility'),
-        ('src.ui_modern', 'Alternative modern UI'),
-        ('src.ui', 'Basic UI with pywebview'),
-        ('src.ui_simple', 'Fallback UI with Tkinter (no pywebview required)')
-    ]
-    
-    for module_name, description in ui_modules:
-        try:
-            print(f"Attempting to load: {description}")
-            ui_module = __import__(module_name, fromlist=[''])
-            
-            if hasattr(ui_module, 'create_browser'):
-                print(f"Successfully loaded {module_name}")
-                ui_module.create_browser()
-                break
-            else:
-                print(f"Module {module_name} does not have create_browser function")
-                
-        except ImportError as e:
-            print(f"Failed to import {module_name}: {e}")
-            continue
-        except Exception as e:
-            print(f"Error starting {module_name}: {e}")
-            continue
-    else:
-        print("ERROR: All UI modules failed to load!")
-        print("Please check:")
-        print("1. pywebview installation: pip install pywebview")
-        print("2. tkinter availability (usually included with Python)")
-        print("3. System dependencies for GUI applications")
+    try:
+        # Загрузка и проверка VLESS URI
+        browser_logger.info("Этап 1: Загрузка VLESS URI")
+        uri = get_vless_uri()
+        if not uri:
+            browser_logger.warning("VLESS URI не настроен")
+            print("Warning: VLESS URI not configured")
         
+        # Генерация конфигурации
+        browser_logger.info("Этап 2: Генерация конфигурации")
+        generate_config(uri)
+
+        # Настройка прокси для SOCKS
+        browser_logger.info("Этап 3: Настройка прокси")
+        os.environ['HTTP_PROXY'] = 'socks5://127.0.0.1:1080'
+        os.environ['HTTPS_PROXY'] = 'socks5://127.0.0.1:1080'
+        browser_logger.debug("Прокси настроен: SOCKS5://127.0.0.1:1080")
+
+        # Запуск Xray в фоновом режиме
+        browser_logger.info("Этап 4: Запуск Xray")
+        threading.Thread(target=start_xray, daemon=True).start()
+        
+        # Небольшая задержка для запуска Xray
+        browser_logger.info("Ожидание запуска Xray (2 секунды)...")
+        import time
+        time.sleep(2)
+        
+        # Запуск браузера с каскадной системой UI v4.0.0
+        browser_logger.info("Этап 5: Запуск Ultra-Modern Browser v4.0.0...")
+        
+        try:
+            # Уровень 1: УЛЬТРА-СОВРЕМЕННЫЙ интерфейс с Material Design 3
+            browser_logger.info("🎨 Попытка запуска ui_ultra_modern (Material Design 3)")
+            print("Attempting to load: Ultra-Modern Material Design 3 UI v4.0.0")
+            import src.ui_ultra_modern as ui_ultra_modern
+            ui_ultra_modern.start()
+        except Exception as e:
+            log_exception(browser_logger, e, "ui_ultra_modern")
+            print(f"Failed to import src.ui_ultra_modern: {e}")
+            try:
+                # Уровень 2: Исправленный современный интерфейс с вкладками
+                browser_logger.info("🔧 Fallback на ui_modern_fixed (Fixed Modern + Tabs)")
+                print("Attempting to load: Modern UI with fixed pywebview 4.0+ compatibility")
+                import src.ui_modern_fixed as ui_modern_fixed
+                ui_modern_fixed.start()
+            except Exception as e:
+                log_exception(browser_logger, e, "ui_modern_fixed")
+                print(f"Failed to import src.ui_modern_fixed: {e}")
+                try:
+                    # Уровень 3: Обновленный современный интерфейс v4.0.0
+                    browser_logger.info("✨ Fallback на ui_modern (Gradient Design v4.0.0)")
+                    print("Attempting to load: Alternative modern UI v4.0.0")
+                    import src.ui_modern as ui_modern
+                    ui_modern.start()
+                except Exception as e:
+                    log_exception(browser_logger, e, "ui_modern")
+                    print(f"Failed to import src.ui_modern: {e}")
+                    try:
+                        # Уровень 4: Базовый интерфейс с обновленным API
+                        browser_logger.info("🔧 Fallback на ui (Basic UI v4.0.0)")
+                        print("Attempting to load: Basic UI with unified API v4.0.0")
+                        import src.ui as ui
+                        ui.start()
+                    except Exception as e:
+                        log_exception(browser_logger, e, "ui")
+                        print(f"Failed to import src.ui: {e}")
+                        try:
+                            # Уровень 5: Простой интерфейс (всегда работает)
+                            browser_logger.info("🛡️ Fallback на ui_simple (Tkinter Fallback)")
+                            print("Attempting to load: Fallback UI with Tkinter (no pywebview required)")
+                            import src.ui_simple as ui_simple
+                            ui_simple.start()
+                        except Exception as e:
+                            log_exception(browser_logger, e, "ui_simple")
+                            print(f"Failed to import src.ui_simple: {e}")
+                            browser_logger.critical("🚨 ВСЕ UI ИНТЕРФЕЙСЫ НЕДОСТУПНЫ!")
+                            print("ERROR: All UI modules failed to load!")
+                            print("Please check:")
+                            print("1. pywebview installation: pip install pywebview>=3.6")
+                            print("2. tkinter availability (usually included with Python)")
+                            print("3. System dependencies for GUI applications")
+                            print("\nPress Enter to exit...")
+                            input()
+                        
+    except Exception as e:
+        log_exception(browser_logger, e, "main")
+        print(f"\nКритическая ошибка в main(): {e}")
+        print("\nPress Enter to exit...")
+        input()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nПрограмма завершена пользователем")
+    except Exception as e:
+        print(f"\nНеожиданная ошибка: {e}")
+        print("\nPress Enter to exit...")
+        input()

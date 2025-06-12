@@ -8,6 +8,19 @@ import urllib.request
 import zipfile
 import io
 from urllib.parse import urlparse, parse_qs
+import atexit  # For cleanup on exit
+import importlib  # For dynamic UI module loading
+import argparse  # CLI arguments parsing
+import time  # For delays and retry
+import platform
+import ctypes
+import pystray  # Windows tray icon
+from PIL import Image, ImageDraw
+
+# Парсер аргументов
+parser = argparse.ArgumentParser(description='Ultra-Modern Browser with VLESS VPN')
+parser.add_argument('--no-vpn', action='store_true', help='Skip VPN (Xray) startup')
+args = parser.parse_args()
 
 # Создаем папку для логов если её нет
 os.makedirs('logs', exist_ok=True)
@@ -17,6 +30,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Импортируем систему логирования
 from src.logger import browser_logger, log_exception
+
+
+# Store Xray process globally for cleanup
+global_xray_process = None  # Store Xray process for termination
+
+UI_MODULES = [
+    'src.ui_ultra_modern',
+    'src.ui_modern_fixed',
+    'src.ui_modern',
+    'src.ui',
+    'src.ui_simple'
+]
 
 
 def get_vless_uri():
@@ -50,55 +75,54 @@ def generate_config(uri: str):
     """Генерирует конфигурацию config.json на основе VLESS URI."""
     # Default values
     cfg = {
-        'id': '331564911',
-        'address': '94.131.110.172',
-        'port': 23209,
-        'fp': 'random',
-        'pbk': 'EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc',
-        'sni': 'yahoo.com',
-        'sid': '68c55e5189f67c90'
+         'id': '331564911',
+         'address': '94.131.110.172',
+         'port': 23209,
+         'fp': 'random',
+         'pbk': 'EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc',
+         'sni': 'yahoo.com',
+         'sid': '68c55e5189f67c90'
     }
     
     # Парсинг VLESS URI
     if uri and uri.startswith('vless://'):
         try:
             parsed = urlparse(uri)
-            print(f"Парсинг URI: {uri}")
+            browser_logger.info(f"Парсинг URI: {uri}")
             
             # Извлекаем ID (username)
             if parsed.username:
                 cfg['id'] = parsed.username
-                print(f"ID: {cfg['id']}")
+                browser_logger.debug(f"ID: {cfg['id']}")
             
             # Извлекаем адрес и порт
             if parsed.hostname:
                 cfg['address'] = parsed.hostname
-                print(f"Адрес: {cfg['address']}")
+                browser_logger.debug(f"Адрес: {cfg['address']}")
             
             if parsed.port:
                 cfg['port'] = parsed.port
-                print(f"Порт: {cfg['port']}")
+                browser_logger.debug(f"Порт: {cfg['port']}")
             
             # Парсим параметры запроса
             qs = parse_qs(parsed.query)
             if 'fp' in qs:
                 cfg['fp'] = qs['fp'][0]
-                print(f"Fingerprint: {cfg['fp']}")
+                browser_logger.debug(f"Fingerprint: {cfg['fp']}")
             if 'pbk' in qs:
                 cfg['pbk'] = qs['pbk'][0]
-                print(f"Public Key: {cfg['pbk'][:20]}...")
+                browser_logger.debug(f"Public Key: {cfg['pbk'][:20]}...")
             if 'sni' in qs:
                 cfg['sni'] = qs['sni'][0]
-                print(f"SNI: {cfg['sni']}")
+                browser_logger.debug(f"SNI: {cfg['sni']}")
             if 'sid' in qs:
                 cfg['sid'] = qs['sid'][0]
-                print(f"Short ID: {cfg['sid']}")
+                browser_logger.debug(f"Short ID: {cfg['sid']}")
                 
         except Exception as e:
-            print(f"Ошибка парсинга VLESS URI: {e}")
-            print("Используются значения по умолчанию")
+            browser_logger.error(f"Ошибка парсинга VLESS URI: {e}; используются значения по умолчанию")
     else:
-        print("VLESS URI не найден, используются значения по умолчанию")
+        browser_logger.warning("VLESS URI не найден, используются значения по умолчанию")
 
     # Генерация правильной конфигурации для Xray-core
     config = {
@@ -152,10 +176,10 @@ def generate_config(uri: str):
         ]
     }
     
-    print(f"Создание конфигурации для сервера {cfg['address']}:{cfg['port']}")
+    browser_logger.info(f"Создание конфигурации для сервера {cfg['address']}:{cfg['port']}")
     with open('config.json', 'w', encoding='utf-8') as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
-    print("Конфигурация config.json успешно создана")
+    browser_logger.info("Конфигурация config.json успешно создана")
 
 
 def ensure_xray():
@@ -173,8 +197,10 @@ def ensure_xray():
     url = 'https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip'
     
     try:
-        print('Загрузка Xray-core...')
-        data = urllib.request.urlopen(url).read()
+        browser_logger.info('Загрузка Xray-core через urllib.request')
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read()
         
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             for name in zf.namelist():
@@ -196,22 +222,57 @@ def start_xray():
     """Запускает Xray-core с загрузкой бинарника при необходимости."""
     xray_path = ensure_xray()
     if not xray_path:
-        print("Не удалось получить Xray-core. Продолжение без VPN.")
+        browser_logger.warning("Xray не доступен, пропуск VPN")
         return
-    
-    try:
-        print(f"Запуск Xray: {xray_path}")
-        process = subprocess.Popen([xray_path, 'run', '-c', 'config.json'])
-        print(f"Xray запущен с PID: {process.pid}")
-    except FileNotFoundError:
-        print('Xray исполняемый файл не найден.')
-    except Exception as e:
-        print(f'Ошибка запуска Xray: {e}')
+    # Пытаемся запустить Xray с retry
+    retries = 3
+    for attempt in range(1, retries+1):
+        try:
+            browser_logger.info(f"Запуск Xray (попытка {attempt}): {xray_path}")
+            global global_xray_process
+            global_xray_process = subprocess.Popen([xray_path, 'run', '-c', 'config.json'])
+            browser_logger.info(f"Xray запущен с PID: {global_xray_process.pid}")
+            return
+        except Exception as e:
+            browser_logger.error(f"Ошибка запуска Xray (попытка {attempt}): {e}")
+            time.sleep(1)
+    browser_logger.critical("Не удалось запустить Xray после нескольких попыток")
 
+# Windows 11: DPI awareness and hide console
+if platform.system() == 'Windows':
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)
+    except Exception:
+        pass
+
+# Create tray icon image
+def _create_tray_image():
+    width = 64; height = 64
+    image = Image.new('RGB', (width, height), 'black')
+    dc = ImageDraw.Draw(image)
+    dc.rectangle((0, height//2, width, height), fill='white')
+    return image
+
+# Quit handler for tray menu
+def _on_quit(icon, item):
+    global global_xray_process
+    if global_xray_process:
+        global_xray_process.terminate()
+    icon.stop()
+    sys.exit(0)
+
+# Initialize tray icon
+threading.Thread(target=lambda: pystray.Icon(
+    'UltraModernBrowser', _create_tray_image(), 'UltraModernBrowser',
+    menu=pystray.Menu(pystray.MenuItem('Quit', _on_quit))
+).run(), daemon=True).start()
 
 def main():
-    """Главная функция приложения."""
-    browser_logger.info("=== ЗАПУСК ЛЁГКОГО БРАУЗЕРА С VLESS VPN ===")
+    """Главная функция приложения Ultra-Modern Browser v4.0.0."""
+    browser_logger.info("=== ЗАПУСК УЛЬТРА-СОВРЕМЕННОГО БРАУЗЕРА v4.0.0 ===")
     
     try:
         # Загрузка и проверка VLESS URI
@@ -226,63 +287,43 @@ def main():
 
         # Настройка прокси для SOCKS
         browser_logger.info("Этап 3: Настройка прокси")
-        os.environ['HTTP_PROXY'] = 'socks5://127.0.0.1:1080'
-        os.environ['HTTPS_PROXY'] = 'socks5://127.0.0.1:1080'
-        browser_logger.debug("Прокси настроен: SOCKS5://127.0.0.1:1080")
+        if not args.no_vpn:
+            os.environ['HTTP_PROXY'] = 'socks5://127.0.0.1:1080'
+            os.environ['HTTPS_PROXY'] = 'socks5://127.0.0.1:1080'
+        else:
+            browser_logger.info("VPN пропущен по аргументу --no-vpn")
 
         # Запуск Xray в фоновом режиме
         browser_logger.info("Этап 4: Запуск Xray")
-        threading.Thread(target=start_xray, daemon=True).start()
-        
-        # Небольшая задержка для запуска Xray
-        browser_logger.info("Ожидание запуска Xray (2 секунды)...")
-        import time
-        time.sleep(2)
-        
-        # Запуск браузера с современным интерфейсом
-        browser_logger.info("Этап 5: Запуск браузера...")
-        
-        try:
-            # Пробуем использовать УЛЬТРА-СОВРЕМЕННЫЙ интерфейс
-            browser_logger.info("Попытка запуска ui_ultra_modern")
-            import src.ui_ultra_modern as ui_ultra_modern
-            ui_ultra_modern.start()
-        except Exception as e:
-            log_exception(browser_logger, e, "ui_ultra_modern")
+        if not args.no_vpn:
+            threading.Thread(target=start_xray, daemon=True).start()
+            atexit.register(lambda: global_xray_process and global_xray_process.terminate())
+        else:
+            browser_logger.info("Пропускаем старт Xray (VPN)")
+
+         # Небольшая задержка для запуска Xray
+        import time; time.sleep(2)
+
+        # Запуск браузера с каскадной системой UI v4.0.0
+        browser_logger.info("Этап 5: Запуск Ultra-Modern Browser v4.0.0...")
+        for module_name in UI_MODULES:
             try:
-                # Пробуем использовать исправленный интерфейс
-                browser_logger.info("Fallback на ui_modern_fixed")
-                import src.ui_modern_fixed as ui_modern_fixed
-                ui_modern_fixed.start()
+                browser_logger.info(f"Попытка запуска {module_name}")
+                module = importlib.import_module(module_name)
+                module.start()
+                return
             except Exception as e:
-                log_exception(browser_logger, e, "ui_modern_fixed")
-                try:
-                    # Fallback на новый интерфейс
-                    browser_logger.info("Fallback на ui_modern")
-                    import src.ui_modern as ui_modern
-                    ui_modern.start()
-                except Exception as e:
-                    log_exception(browser_logger, e, "ui_modern")
-                    try:
-                        # Fallback на старый интерфейс
-                        browser_logger.info("Fallback на ui")
-                        import src.ui as ui
-                        ui.start()
-                    except Exception as e:
-                        log_exception(browser_logger, e, "ui")
-                        try:
-                            # Последний fallback на простой интерфейс
-                            browser_logger.info("Fallback на ui_simple")
-                            import src.ui_simple as ui_simple
-                            ui_simple.start()
-                        except Exception as e:
-                            log_exception(browser_logger, e, "ui_simple")
-                            browser_logger.critical("Все UI интерфейсы недоступны!")
-                            print("Ошибка: Не удалось запустить ни один интерфейс")
-                            print("Проверьте установку зависимостей: pip install pywebview>=4.0.0")
-                            print("\nНажмите Enter для выхода...")
-                            input()
-                        
+                log_exception(browser_logger, e, module_name)
+                continue
+        # Если ни один модуль не запустился
+        browser_logger.critical("Все UI интерфейсы недоступны. Завершение работы.")
+        message = "Не удалось запустить ни один интерфейс. Установите зависимости: pip install pywebview PyQt5"
+        print(f"Ошибка: {message}")
+        # Windows MessageBox notification
+        if platform.system() == 'Windows':
+            ctypes.windll.user32.MessageBoxW(None, message, "Ultra-Modern Browser", 0)
+        sys.exit(1)
+        
     except Exception as e:
         log_exception(browser_logger, e, "main")
         print(f"\nКритическая ошибка в main(): {e}")

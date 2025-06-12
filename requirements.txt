@@ -1,3 +1,21 @@
-# Лёгкий браузер с VLESS VPN - Зависимости Python
-pywebview>=4.0.0
-PyQt5>=5.15.0
+# Ultra-Modern Browser with VLESS VPN v4.0.0 - Python Dependencies
+# Unified API, Enhanced Compatibility, Advanced Features
+
+# Core Browser Engine
+pywebview>=3.6,<5.0    # Wide range for compatibility with both old and new versions
+
+# GUI Framework (Fallback)
+PyQt5>=5.15.0          # For Linux compatibility and advanced UI features
+
+# Network & Security
+requests>=2.25.0       # For HTTP requests and downloads
+cryptography>=3.0.0    # For encryption and security features
+
+# Additional Features (Optional - will be loaded if available)
+# beautifulsoup4>=4.9.0  # For HTML parsing (future feature)
+# selenium>=4.0.0        # For advanced web automation (future feature)
+# psutil>=5.8.0          # For system monitoring (future feature)
+
+# Tray icon support on Windows
+pystray>=0.17.3
+Pillow>=8.0.0

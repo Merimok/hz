@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Browser</title>
+    <style>
+        :root {
+            --primary: #0078d7;
+            --dark-bg: #1f1f1f;
+            --light-bg: #2d2d2d;
+            --text: #ffffff;
+            --border: #444444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            display: flex;
+            background-color: var(--light-bg);
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+        
+        .navigation {
+            display: flex;
+            margin-right: 10px;
+        }
+        
+        .nav-button {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 18px;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+        
+        .nav-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .address-bar {
+            flex: 1;
+            padding: 8px 12px;
+            background-color: #333;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .address-bar:focus {
+            border-color: var(--primary);
+        }
+        
+        .browser-frame {
+            flex: 1;
+            border: none;
+        }
+        
+        .status-bar {
+            background-color: var(--light-bg);
+            padding: 5px 10px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            font-size: 12px;
+        }
+        
+        .status-item {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .connected {
+            background-color: #4caf50;
+        }
+        
+        .disconnected {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="navigation">
+            <button class="nav-button" id="back" title="Back">←</button>
+            <button class="nav-button" id="forward" title="Forward">→</button>
+            <button class="nav-button" id="reload" title="Reload">↻</button>
+            <button class="nav-button" id="home" title="Home">⌂</button>
+        </div>
+        <input type="text" class="address-bar" id="addressBar" placeholder="Search or enter website name">
+    </div>
+    
+    <iframe id="browserFrame" class="browser-frame" src="about:blank"></iframe>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-indicator" id="vpnStatus"></div>
+            <span id="vpnText">Checking VPN...</span>
+        </div>
+        <div class="status-item" id="pageStatus">Ready</div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const backButton = document.getElementById('back');
+        const forwardButton = document.getElementById('forward');
+        const reloadButton = document.getElementById('reload');
+        const homeButton = document.getElementById('home');
+        const addressBar = document.getElementById('addressBar');
+        const browserFrame = document.getElementById('browserFrame');
+        const vpnStatus = document.getElementById('vpnStatus');
+        const vpnText = document.getElementById('vpnText');
+        const pageStatus = document.getElementById('pageStatus');
+        
+        // Default home page
+        const homePage = 'https://www.google.com';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load home page
+            navigateTo(homePage);
+            
+            // Set up event listeners
+            backButton.addEventListener('click', goBack);
+            forwardButton.addEventListener('click', goForward);
+            reloadButton.addEventListener('click', reload);
+            homeButton.addEventListener('click', goHome);
+            addressBar.addEventListener('keydown', handleAddressBarKeyDown);
+            browserFrame.addEventListener('load', updateAddressBar);
+            
+            // Check VPN status periodically
+            checkVPNStatus();
+            setInterval(checkVPNStatus, 5000);
+        });
+        
+        function navigateTo(url) {
+            if (!url) return;
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                if (url.includes('.') && !url.includes(' ')) {
+                    url = 'https://' + url;
+                } else {
+                    url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+                }
+            }
+            
+            try {
+                // Use pywebview API if available
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.load_url(url);
+                } else {
+                    browserFrame.src = url;
+                }
+                
+                addressBar.value = url;
+                pageStatus.textContent = 'Loading...';
+            } catch (e) {
+                console.error('Navigation error:', e);
+                browserFrame.src = url; // Fallback
+            }
+        }
+        
+        function goBack() {
+            try {
+                browserFrame.contentWindow.history.back();
+            } catch (e) {
+                console.error('Error going back:', e);
+            }
+        }
+        
+        function goForward() {
+            try {
+                browserFrame.contentWindow.history.forward();
+            } catch (e) {
+                console.error('Error going forward:', e);
+            }
+        }
+        
+        function reload() {
+            try {
+                browserFrame.contentWindow.location.reload();
+            } catch (e) {
+                console.error('Error reloading:', e);
+                browserFrame.src = browserFrame.src;
+            }
+        }
+        
+        function goHome() {
+            navigateTo(homePage);
+        }
+        
+        function handleAddressBarKeyDown(e) {
+            if (e.key === 'Enter') {
+                navigateTo(addressBar.value);
+            }
+        }
+        
+        function updateAddressBar() {
+            try {
+                addressBar.value = browserFrame.contentWindow.location.href;
+                pageStatus.textContent = 'Ready';
+                
+                // Update page title
+                document.title = browserFrame.contentWindow.document.title + ' - Modern Browser';
+            } catch (e) {
+                console.error('Error updating address bar:', e);
+            }
+        }
+        
+        function checkVPNStatus() {
+            try {
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.check_connection().then(status => {
+                        if (status.vpn) {
+                            vpnStatus.className = 'status-indicator connected';
+                            vpnText.textContent = 'VPN Connected';
+                        } else {
+                            vpnStatus.className = 'status-indicator disconnected';
+                            vpnText.textContent = 'VPN Disconnected';
+                        }
+                    });
+                } else {
+                    // Simulate VPN status for testing
+                    vpnStatus.className = 'status-indicator connected';
+                    vpnText.textContent = 'VPN Connected';
+                }
+            } catch (e) {
+                console.error('Error checking VPN status:', e);
+                vpnStatus.className = 'status-indicator disconnected';
+                vpnText.textContent = 'VPN Status Error';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-name: Build Ultra-Modern Browser with VLESS VPN v3.0.0
+name: Build Ultra-Modern Browser with VLESS VPN v4.0.0
 
 on:
   push:
@@ -12,6 +12,8 @@ on:
       - '.github/workflows/**'
       - 'requirements.txt'
       - 'ULTRA_MODERN_BROWSER_UPDATE_v3.0.0.md'
+      - 'HOTFIX_v3.0.1_DEPLOYMENT_SUCCESS.md'
+      - 'CODE_AUDIT_v4.0.0.md'
   pull_request:
     branches: [ main, master ]
     paths:
@@ -26,7 +28,7 @@ on:
       version:
         description: 'Version to build'
         required: false
-        default: 'v3.0.0'
+        default: 'v4.0.0'
 
 permissions:
   contents: write
@@ -76,54 +78,86 @@ jobs:
       - name: Prepare release package
         run: |
           New-Item -ItemType Directory -Path "release" -Force
-          Copy-Item "dist/main.exe" "release/ultra-modern-browser-vless-v3.0.0.exe"
+          Copy-Item "dist/main.exe" "release/ultra-modern-browser-vless-v4.0.0.exe"
           Copy-Item "README.md" "release/" -ErrorAction SilentlyContinue
+          Copy-Item "CODE_AUDIT_v4.0.0.md" "release/" -ErrorAction SilentlyContinue
           Copy-Item "ULTRA_MODERN_BROWSER_UPDATE_v3.0.0.md" "release/" -ErrorAction SilentlyContinue
           Copy-Item "config/vless.txt" "release/vless.txt"
 
       - name: Create release archive
         run: |
-          Compress-Archive -Path "release/*" -DestinationPath "ultra-modern-browser-vless-v3.0.0-windows.zip"
+          Compress-Archive -Path "release/*" -DestinationPath "ultra-modern-browser-vless-v4.0.0-windows.zip"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ultra-modern-browser-vless-v3.0.0-windows
-          path: ultra-modern-browser-vless-v3.0.0-windows.zip
+          name: ultra-modern-browser-vless-v4.0.0-windows
+          path: ultra-modern-browser-vless-v4.0.0-windows.zip
           retention-days: 90
 
       - name: Create Release
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v3.0.0-build-${{ github.run_number }}
-          name: Ultra-Modern Browser with VLESS VPN v3.0.0 Build ${{ github.run_number }}
+          tag_name: v4.0.0-build-${{ github.run_number }}
+          name: 🚀 Ultra-Modern Browser with VLESS VPN v4.0.0 Build ${{ github.run_number }}
           body: |
-            🚀 **MAJOR UPDATE - Ultra-Modern Browser with VLESS VPN v3.0.0**
+            # 🚀 MAJOR RELEASE v4.0.0 - Ultra-Modern Browser with Advanced Features
             
-            ✨ **Revolutionary Features:**
-            - 🎨 **Material Design 3** - Полностью переработанный современный интерфейс
-            - 📱 **Responsive Design** - Адаптивный дизайн для всех разрешений экрана
-            - 🗂️ **Advanced Tab Management** - Полноценная система вкладок с pin/unpin
-            - ⌨️ **Keyboard Shortcuts** - Ctrl+T, Ctrl+W, Ctrl+R и другие горячие клавиши
-            - 🎯 **Smart Navigation** - Умная адресная строка с автодополнением
-            - 📊 **Comprehensive Logging** - Расширенная система логирования
+            ## ✨ **Revolutionary New Features:**
             
-            🔧 **Technical Excellence:**
-            - 🏗️ **ModernBrowserApi** - Новая архитектура с async поддержкой
-            - 🎨 **CSS Variables & Animations** - Плавные переходы и современная стилизация  
-            - 🔄 **5-Level UI Fallback** - Каскадная система интерфейсов
-            - 🛡️ **Enhanced Error Handling** - Улучшенная обработка ошибок
-            - 🎪 **Material Icons** - Современные иконки Material Design
+            ### 🏗️ **Unified API Architecture**
+            - 🔧 **BaseBrowserApi** - Единая база для всех UI модулей
+            - 🔄 **Dynamic PyWebview Detection** - Автоматическая совместимость с версиями 3.6-5.0
+            - 🛡️ **Enhanced Error Handling** - Улучшенная обработка ошибок и логирование
             
-            📦 **Installation:**
-            1. Download `ultra-modern-browser-vless-v3.0.0-windows.zip`
-            2. Extract and run `ultra-modern-browser-vless-v3.0.0.exe`  
+            ### 🎨 **Advanced UI System**
+            - 🎯 **5-Level Cascading UI** - ui_ultra_modern → ui_modern_fixed → ui_modern → ui → ui_simple
+            - ⌨️ **Extended Keyboard Shortcuts** - Ctrl+L (focus address), F5 (refresh), Escape (stop)
+            - 🎨 **CSS Variables System** - Единая система стилей для всех интерфейсов
+            - 📱 **Enhanced Responsive Design** - Улучшенная адаптивность
+            
+            ### 🔧 **Technical Excellence**
+            - 📦 **Smart Bookmarks Loading** - Автоматическая загрузка с fallback на дефолтные
+            - 🌍 **Intelligent URL Processing** - Умная обработка URL и поисковых запросов
+            - 📊 **Advanced Logging** - Детальное логирование всех операций
+            - 🔄 **Cross-Platform Compatibility** - Полная совместимость Windows/Linux
+            
+            ## 🛠️ **Under the Hood:**
+            
+            ### **From v3.0.1 to v4.0.0:**
+            - ✅ **API Standardization** - Все UI модули используют единый базовый API
+            - ✅ **JavaScript Unification** - Стандартизированные вызовы API
+            - ✅ **Enhanced Compatibility** - Поддержка pywebview 3.6-5.0
+            - ✅ **Improved Performance** - Оптимизированная загрузка и рендеринг
+            - ✅ **Better Error Recovery** - Улучшенная система fallback
+            
+            ### **Features Comparison:**
+            ```
+            v3.x: Material Design 3, Tab Management, Basic Logging
+            v4.0: + Unified API, Extended Shortcuts, Smart Bookmarks, 
+                  Enhanced Compatibility, Advanced Error Handling
+            ```
+            
+            ## 📦 **Installation:**
+            1. Download `ultra-modern-browser-vless-v4.0.0-windows.zip`
+            2. Extract and run `ultra-modern-browser-vless-v4.0.0.exe`
             3. Configure VLESS URI in `vless.txt`
+            4. Enjoy the ultra-modern browsing experience! 🎉
             
-            Built on: ${{ github.event.head_commit.timestamp }}
-            Commit: ${{ github.sha }}
-          files: ultra-modern-browser-vless-v3.0.0-windows.zip
+            ## 🔄 **Upgrade Notes:**
+            - **Compatible** with all v3.x configurations
+            - **Enhanced** keyboard shortcuts support
+            - **Improved** startup reliability
+            - **Optimized** for both old and new PyWebview versions
+            
+            ---
+            
+            **Built on:** ${{ github.event.head_commit.timestamp }}  
+            **Commit:** ${{ github.sha }}  
+            **Platform:** Windows x64  
+            **PyWebview:** 3.6+ compatible
+          files: ultra-modern-browser-vless-v4.0.0-windows.zip
           draft: false
           prerelease: false
         env:

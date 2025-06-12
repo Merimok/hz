@@ -1,0 +1,270 @@
+2025-06-12 20:47:11 | INFO     | browser | setup_logger:53 | Логирование настроено. Файл логов: logs/browser_20250612_204711.log
+2025-06-12 20:47:11 | INFO     | browser | setup_logger:54 | ============================================================
+2025-06-12 20:47:11 | INFO     | browser | main:214 | === ЗАПУСК УЛЬТРА-СОВРЕМЕННОГО БРАУЗЕРА v4.0.0 ===
+2025-06-12 20:47:11 | INFO     | browser | main:218 | Этап 1: Загрузка VLESS URI
+2025-06-12 20:47:11 | INFO     | browser | get_vless_uri:24 | Загрузка VLESS URI...
+2025-06-12 20:47:11 | INFO     | browser | get_vless_uri:31 | VLESS URI загружен из vless.txt
+2025-06-12 20:47:11 | INFO     | browser | get_vless_uri:44 | VLESS URI успешно загружен (длина: 172 символов)
+2025-06-12 20:47:11 | INFO     | browser | main:224 | Этап 2: Генерация конфигурации
+2025-06-12 20:47:11 | INFO     | browser | main:228 | Этап 3: Настройка прокси
+2025-06-12 20:47:11 | DEBUG    | browser | main:231 | Прокси настроен: SOCKS5://127.0.0.1:1080
+2025-06-12 20:47:11 | INFO     | browser | main:234 | Этап 4: Запуск Xray
+2025-06-12 20:47:11 | INFO     | browser | main:238 | Ожидание запуска Xray (2 секунды)...
+2025-06-12 20:47:13 | INFO     | browser | main:243 | Этап 5: Запуск Ultra-Modern Browser v4.0.0...
+2025-06-12 20:47:13 | INFO     | browser | main:247 | 🎨 Попытка запуска ui_ultra_modern (Material Design 3)
+2025-06-12 20:47:13 | INFO     | browser | start:131 | 🚀 Запуск СОВРЕМЕННОГО браузера с TabManager...
+2025-06-12 20:47:13 | INFO     | browser | start:138 | Загружено 2 закладок
+2025-06-12 20:47:13 | INFO     | browser | start:845 | Создание ModernBrowserApi...
+2025-06-12 20:47:13 | INFO     | browser | start:849 | Создание современного webview окна...
+2025-06-12 20:47:13 | INFO     | browser | start:862 | API связан с окном webview
+2025-06-12 20:47:13 | INFO     | browser | start:864 | 🎨 Запуск современного браузера с Material Design 3...
+2025-06-12 20:47:13 | DEBUG    | browser | start:876 | Используем legacy API pywebview 3.x
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в webview.start: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_ultra_modern: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | INFO     | browser | main:254 | 🔧 Fallback на ui_modern_fixed (Fixed Modern + Tabs)
+2025-06-12 20:47:13 | INFO     | browser | start:118 | Запуск UI с поддержкой вкладок...
+2025-06-12 20:47:13 | INFO     | browser | start:124 | Загружено 2 закладок
+2025-06-12 20:47:13 | INFO     | browser | start:655 | Создание BrowserApi с TabManager...
+2025-06-12 20:47:13 | INFO     | browser | start:659 | Создание webview окна...
+2025-06-12 20:47:13 | INFO     | browser | start:671 | API связан с окном webview
+2025-06-12 20:47:13 | INFO     | browser | start:673 | Запуск браузера с современным интерфейсом...
+2025-06-12 20:47:13 | DEBUG    | browser | start:685 | Используем legacy API pywebview 3.x
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в webview.start: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 686, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_modern_fixed: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 686, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | INFO     | browser | main:261 | ✨ Fallback на ui_modern (Gradient Design v4.0.0)
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_modern: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 686, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 263, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 413, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | INFO     | browser | main:268 | 🔧 Fallback на ui (Basic UI v4.0.0)
+2025-06-12 20:47:13 | INFO     | browser | create_webview_window_safe:108 | Создание окна webview: Lightweight Browser with VLESS VPN
+2025-06-12 20:47:13 | DEBUG    | browser | create_webview_window_safe:114 | PyWebview поддерживает api параметр: False
+2025-06-12 20:47:13 | DEBUG    | browser | set_window:25 | Установлено окно webview: <webview.window.Window object at 0x7ff4dcbafda0>
+2025-06-12 20:47:13 | DEBUG    | browser | start_webview_safe:147 | Запуск с legacy API pywebview 3.x
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в start_webview_safe: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 686, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 263, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 413, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/src/base_api.py", line 148, in start_webview_safe
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | ERROR    | browser | log_exception:61 | ОШИБКА в ui: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:47:13 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 878, in start
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 686, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 263, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 413, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 270, in main
+    ui.start()
+  File "/var/home/tannim/hz/src/ui.py", line 194, in start
+    start_webview_safe(api, supports_api_param)
+  File "/var/home/tannim/hz/src/base_api.py", line 148, in start_webview_safe
+    webview.start(debug=False, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:47:13 | INFO     | browser | main:275 | 🛡️ Fallback на ui_simple (Tkinter Fallback)

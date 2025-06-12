@@ -2,54 +2,193 @@ import json
 import os
 from urllib.parse import quote_plus
 import webview
+from src.base_api import BaseBrowserApi, create_webview_window_safe, start_webview_safe, load_bookmarks, COMMON_CSS_VARIABLES
+
+
+class BasicBrowserApi(BaseBrowserApi):
+    """Базовый API для простого интерфейса."""
+    pass
 
 
 def start():
     """Запускает пользовательский интерфейс браузера с закладками."""
-    bookmarks = []
-    with open(os.path.join('resources', 'bookmarks.json'), 'r') as bf:
-        bookmarks = json.load(bf)
-
+    
+    # Загружаем закладки
+    bookmarks = load_bookmarks()
     start_url = 'https://www.google.com'
+    
+    # Генерируем опции для закладок
     options = ''.join([f"<option value='{b['url']}'>{b['name']}</option>" for b in bookmarks])
 
-    html = """
+    html = f"""
     <!DOCTYPE html>
     <html>
-    <body style='margin:0;padding:0;'>
-      <div style='display:flex; padding:5px; background:#eee;'>
-        <button onclick=\"window.pywebview.api.goBack()\">\u2190</button>
-        <button onclick=\"window.pywebview.api.goForward()\">\u2192</button>
-        <button onclick=\"window.pywebview.api.refresh()\">\u27f3</button>
-        <input id='address' style='flex:1;margin:0 5px;' value='{start}' />
-        <button onclick=\"window.pywebview.api.navigate(document.getElementById('address').value)\">Go</button>
-        <select onchange=\"window.pywebview.api.navigate(this.value)\">
-          <option>\u0417\u0430\u043a\u043b\u0430\u0434\u043a\u0438</option>
-          {options}
-        </select>
-      </div>
-      <webview id='wv' src='{start}' style='width:100%; height:calc(100% - 40px);'></webview>
-      <script>
-        const api = window.pywebview.api;
-        document.getElementById('address').addEventListener('keypress', e => { if (e.key === 'Enter') api.navigate(e.target.value); });
-      </script>
+    <head>
+        <meta charset="UTF-8">
+        <title>Lightweight Browser</title>
+        <style>
+            {COMMON_CSS_VARIABLES}
+            
+            body {{
+                margin: 0;
+                padding: 0;
+                font-family: var(--font-family);
+                background: var(--bg-color);
+            }}
+            
+            .toolbar {{
+                display: flex;
+                padding: 10px;
+                background: var(--secondary-color);
+                border-bottom: 1px solid var(--border-color);
+                gap: 8px;
+                align-items: center;
+            }}
+            
+            .nav-btn {{
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: var(--border-radius);
+                cursor: pointer;
+                font-size: 16px;
+                transition: background 0.2s;
+            }}
+            
+            .nav-btn:hover {{
+                background: var(--primary-hover);
+            }}
+            
+            #address {{
+                flex: 1;
+                padding: 8px 12px;
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius);
+                font-size: 14px;
+                outline: none;
+            }}
+            
+            #address:focus {{
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+            }}
+            
+            .bookmarks-select {{
+                padding: 8px;
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius);
+                background: white;
+                cursor: pointer;
+            }}
+            
+            .webview {{
+                width: 100%;
+                height: calc(100vh - 60px);
+                border: none;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="toolbar">
+            <button class="nav-btn" onclick="goBack()" title="Назад">←</button>
+            <button class="nav-btn" onclick="goForward()" title="Вперёд">→</button>
+            <button class="nav-btn" onclick="refresh()" title="Обновить">↻</button>
+            <input id='address' value='{start_url}' placeholder="Введите URL или поисковый запрос..." />
+            <button class="nav-btn" onclick="navigate()">Перейти</button>
+            <select class="bookmarks-select" onchange="navigateToBookmark(this.value)">
+                <option value="">Закладки</option>
+                {options}
+            </select>
+        </div>
+        <webview id='wv' src='{start_url}' class="webview"></webview>
+        
+        <script>
+            const addressBar = document.getElementById('address');
+            
+            // Обработка Enter в адресной строке
+            addressBar.addEventListener('keypress', function(e) {{
+                if (e.key === 'Enter') {{
+                    navigate();
+                }}
+            }});
+            
+            // Горячие клавиши
+            document.addEventListener('keydown', function(e) {{
+                if (e.ctrlKey) {{
+                    switch(e.key) {{
+                        case 'l':
+                        case 'L':
+                            e.preventDefault();
+                            addressBar.focus();
+                            addressBar.select();
+                            break;
+                        case 'r':
+                        case 'R':
+                            e.preventDefault();
+                            refresh();
+                            break;
+                    }}
+                }}
+                
+                if (e.key === 'F5') {{
+                    e.preventDefault();
+                    refresh();
+                }}
+            }});
+            
+            function navigate(customUrl) {{
+                const url = customUrl || addressBar.value.trim();
+                if (!url) return;
+                
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.navigate(url);
+                    addressBar.value = url;
+                }}
+            }}
+            
+            function goBack() {{
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.go_back();
+                }}
+            }}
+            
+            function goForward() {{
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.go_forward();
+                }}
+            }}
+            
+            function refresh() {{
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.refresh();
+                }}
+            }}
+            
+            function navigateToBookmark(url) {{
+                if (url) {{
+                    navigate(url);
+                    // Сбрасываем выбор
+                    event.target.selectedIndex = 0;
+                }}
+            }}
+        </script>
     </body>
     </html>
-    """.format(start=start_url, options=options)
+    """
 
-    window = webview.create_window('Lightweight Browser', html)
+    # Создаём API объект
+    api = BasicBrowserApi()
+    
+    # Создаём окно безопасно
+    window, supports_api_param = create_webview_window_safe(
+        'Lightweight Browser with VLESS VPN', 
+        html, 
+        api,
+        width=1200,
+        height=800,
+        min_size=(800, 600)
+    )
 
-    class Api:
-        def navigate(self, text):
-            url = text
-            if not text.startswith('http://') and not text.startswith('https://'):
-                url = 'https://www.google.com/search?q=' + quote_plus(text)
-            window.load_url(url)
-        def goBack(self):
-            window.go_back()
-        def goForward(self):
-            window.go_forward()
-        def refresh(self):
-            window.reload()
-
-    webview.start(gui='edgehtml' if os.name=='nt' else None, debug=True, http_server=True, js_api=Api())
+    # Запускаем webview безопасно
+    start_webview_safe(api, supports_api_param)

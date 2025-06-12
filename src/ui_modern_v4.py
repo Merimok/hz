@@ -12,149 +12,87 @@ class ModernBrowserApi(BaseBrowserApi):
 
 def start():
     """Запускает пользовательский интерфейс браузера с современным дизайном."""
-    bookmarks = []
-    try:
-        with open(os.path.join('resources', 'bookmarks.json'), 'r', encoding='utf-8') as bf:
-            bookmarks = json.load(bf)
-    except FileNotFoundError:
-        # Создаём закладки по умолчанию если файл не найден
-        bookmarks = [
-            {"name": "YouTube", "url": "https://www.youtube.com"},
-            {"name": "2IP", "url": "https://2ip.ru"}
-        ]
-
-    start_url = 'https://www.google.com'
     
-    # Современный HTML дизайн
+    # Загружаем закладки
+    bookmarks = load_bookmarks()
+    start_url = 'https://www.google.com'
+
     html = f"""
     <!DOCTYPE html>
-    <html lang="ru">
+    <html>
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Лёгкий браузер с VLESS VPN</title>
+        <title>Modern Browser</title>
         <style>
-            * {{
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }}
+            {COMMON_CSS_VARIABLES}
             
             body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                margin: 0;
+                padding: 0;
+                font-family: var(--font-family);
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                height: 100vh;
-                overflow: hidden;
+                min-height: 100vh;
             }}
             
             .browser-container {{
+                height: 100vh;
                 display: flex;
                 flex-direction: column;
-                height: 100vh;
-                background: white;
-                box-shadow: 0 0 30px rgba(0,0,0,0.2);
+                backdrop-filter: blur(10px);
             }}
             
             .toolbar {{
-                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                background: rgba(255,255,255,0.1);
+                backdrop-filter: blur(10px);
+                border-bottom: 1px solid rgba(255,255,255,0.2);
                 padding: 12px 16px;
                 display: flex;
+                gap: 8px;
                 align-items: center;
-                gap: 12px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                position: relative;
-            }}
-            
-            .toolbar::before {{
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-                pointer-events: none;
             }}
             
             .nav-btn {{
                 background: rgba(255,255,255,0.2);
                 border: none;
-                border-radius: 8px;
+                border-radius: var(--border-radius);
                 color: white;
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                padding: 10px 12px;
                 cursor: pointer;
-                transition: all 0.2s ease;
                 font-size: 16px;
                 backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
+                transition: all 0.2s ease;
             }}
             
             .nav-btn:hover {{
                 background: rgba(255,255,255,0.3);
                 transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            }}
-            
-            .nav-btn:active {{
-                transform: translateY(0);
             }}
             
             .address-bar {{
                 flex: 1;
-                height: 40px;
+                padding: 10px 16px;
                 border: none;
-                border-radius: 20px;
-                padding: 0 20px;
+                border-radius: 25px;
+                background: rgba(255,255,255,0.9);
                 font-size: 14px;
-                background: rgba(255,255,255,0.95);
-                backdrop-filter: blur(10px);
-                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-                transition: all 0.2s ease;
-                position: relative;
-                z-index: 1;
+                outline: none;
+                margin: 0 12px;
             }}
             
             .address-bar:focus {{
-                outline: none;
                 background: white;
-                box-shadow: 0 0 0 3px rgba(255,255,255,0.3), inset 0 2px 4px rgba(0,0,0,0.1);
-            }}
-            
-            .go-btn {{
-                background: rgba(255,255,255,0.2);
-                border: none;
-                border-radius: 8px;
-                color: white;
-                padding: 8px 16px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-weight: 500;
-                backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
-            }}
-            
-            .go-btn:hover {{
-                background: rgba(255,255,255,0.3);
-                transform: translateY(-1px);
+                box-shadow: var(--shadow-lg);
             }}
             
             .bookmarks {{
                 background: rgba(255,255,255,0.2);
                 border: none;
-                border-radius: 8px;
+                border-radius: var(--border-radius);
                 color: white;
                 padding: 8px 12px;
                 cursor: pointer;
                 font-size: 14px;
                 backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
                 transition: all 0.2s ease;
             }}
             
@@ -166,28 +104,35 @@ def start():
                 flex: 1;
                 position: relative;
                 overflow: hidden;
+                background: var(--bg-secondary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: var(--text-light);
             }}
             
             .webview {{
                 width: 100%;
                 height: 100%;
                 border: none;
-                background: #f8fafc;
+                background: var(--bg-secondary);
             }}
             
             .status-bar {{
-                background: #f1f5f9;
+                background: rgba(255,255,255,0.1);
+                backdrop-filter: blur(10px);
                 padding: 8px 16px;
                 font-size: 12px;
-                color: #64748b;
-                border-top: 1px solid #e2e8f0;
+                color: white;
+                border-top: 1px solid rgba(255,255,255,0.2);
                 display: flex;
                 align-items: center;
                 gap: 8px;
             }}
             
             .vpn-status {{
-                background: #10b981;
+                background: var(--success-color);
                 color: white;
                 padding: 4px 8px;
                 border-radius: 12px;
@@ -199,40 +144,7 @@ def start():
             }}
             
             .vpn-status::before {{
-                content: '🔒';
-                font-size: 10px;
-            }}
-            
-            @keyframes pulse {{
-                0%, 100% {{ opacity: 1; }}
-                50% {{ opacity: 0.7; }}
-            }}
-            
-            .loading {{
-                animation: pulse 2s infinite;
-            }}
-            
-            .home-btn {{
-                background: rgba(255,255,255,0.2);
-                border: none;
-                border-radius: 8px;
-                color: white;
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
-                font-size: 18px;
-            }}
-            
-            .home-btn:hover {{
-                background: rgba(255,255,255,0.3);
-                transform: translateY(-1px);
+                content: "🔒";
             }}
         </style>
     </head>
@@ -242,11 +154,11 @@ def start():
                 <button class="nav-btn" onclick="goBack()" title="Назад">←</button>
                 <button class="nav-btn" onclick="goForward()" title="Вперёд">→</button>
                 <button class="nav-btn" onclick="refresh()" title="Обновить">↻</button>
-                <button class="home-btn" onclick="goHome()" title="Домой">🏠</button>
+                <button class="nav-btn" onclick="goHome()" title="Домой">🏠</button>
                 
                 <input class="address-bar" id="addressBar" value="{start_url}" placeholder="Введите URL или поисковый запрос...">
                 
-                <button class="go-btn" onclick="navigate()">Перейти</button>
+                <button class="nav-btn" onclick="navigate()">Перейти</button>
                 
                 <select class="bookmarks" onchange="navigateToBookmark(this.value)">
                     <option value="">Закладки</option>"""
@@ -277,20 +189,39 @@ def start():
             // API для взаимодействия с Python
             const api = window.pywebview?.api || {{
                 navigate: (url) => console.log('Navigate:', url),
-                goBack: () => console.log('Go back'),
-                goForward: () => console.log('Go forward'),
+                go_back: () => console.log('Go back'),
+                go_forward: () => console.log('Go forward'),
                 refresh: () => console.log('Refresh'),
-                goHome: () => console.log('Go home')
+                go_home: () => console.log('Go home')
             }};
             
-            function navigate(url) {{
-                url = url || addressBar.value.trim();
-                if (!url) return;
-                
-                // Если не начинается с http:// или https://, то поиск в Google
-                if (!url.match(/^https?:\\/\\//)) {{
-                    url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+            // Горячие клавиши
+            document.addEventListener('keydown', function(e) {{
+                if (e.ctrlKey) {{
+                    switch(e.key) {{
+                        case 'l':
+                        case 'L':
+                            e.preventDefault();
+                            addressBar.focus();
+                            addressBar.select();
+                            break;
+                        case 'r':
+                        case 'R':
+                            e.preventDefault();
+                            refresh();
+                            break;
+                    }}
                 }}
+                
+                if (e.key === 'F5') {{
+                    e.preventDefault();
+                    refresh();
+                }}
+            }});
+            
+            function navigate(customUrl) {{
+                const url = customUrl || addressBar.value.trim();
+                if (!url) return;
                 
                 addressBar.value = url;
                 statusText.textContent = 'Загрузка... • ' + url;
@@ -307,16 +238,16 @@ def start():
             }}
             
             function goBack() {{
-                if (api.goBack) {{
-                    api.goBack();
+                if (api.go_back) {{
+                    api.go_back();
                 }} else {{
                     history.back();
                 }}
             }}
             
             function goForward() {{
-                if (api.goForward) {{
-                    api.goForward();
+                if (api.go_forward) {{
+                    api.go_forward();
                 }} else {{
                     history.forward();
                 }}
@@ -369,45 +300,22 @@ def start():
     </html>
     """
 
-    # Создаём API класс
-    class Api:
-        def __init__(self):
-            self.window = None
-            
-        def navigate(self, text):
-            if not self.window:
-                return
-            url = text
-            if not text.startswith('http://') and not text.startswith('https://'):
-                url = 'https://www.google.com/search?q=' + quote_plus(text)
-            self.window.load_url(url)
-            
-        def goBack(self):
-            if self.window:
-                # Since pywebview doesn't have built-in history, we'll just return to home
-                self.window.load_url('https://www.google.com')
-            
-        def goForward(self):
-            if self.window:
-                # Since pywebview doesn't have built-in history, we'll just return to home  
-                self.window.load_url('https://www.google.com')
-            
-        def refresh(self):
-            if self.window:
-                self.window.reload()
-
-    # Создаём окно с HTML контентом
-    api = Api()
-    window = webview.create_window(
+    # Создаём API объект
+    api = ModernBrowserApi()
+    
+    # Создаём окно безопасно
+    window, supports_api_param = create_webview_window_safe(
         'Лёгкий браузер с VLESS VPN', 
-        html,
+        html, 
+        api,
         width=1200,
         height=800,
         min_size=(800, 600)
     )
-    
-    # Присваиваем window объект API
-    api.window = window
 
-    # Запускаем webview с API объектом
-    webview.start(debug=True, http_server=True)
+    # Запускаем webview безопасно
+    start_webview_safe(api, supports_api_param)
+
+
+if __name__ == '__main__':
+    start()
