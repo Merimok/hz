@@ -62,12 +62,13 @@ def _create_tray_image():
     height = 64
     
     # Check if custom icon exists
-    icon_path = os.path.join(os.path.dirname(__file__), 'resources', 'icon.png')
-    if os.path.exists(icon_path):
-        try:
-            return Image.open(icon_path)
-        except Exception as e:
-            logger.warning(f"Failed to load custom icon: {e}")
+    for icon_name in ['browser.png', 'icon.png']:
+        icon_path = os.path.join(os.path.dirname(__file__), 'resources', icon_name)
+        if os.path.exists(icon_path):
+            try:
+                return Image.open(icon_path)
+            except Exception as e:
+                logger.warning(f"Failed to load custom icon {icon_name}: {e}")
     
     # Create a simple icon (black and white)
     image = Image.new('RGB', (width, height), (0, 0, 0))
