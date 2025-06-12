@@ -660,18 +660,10 @@ def start():
     browser_logger.info("🚀 Запуск Windows 11 браузера...")
     
     try:
-        # Проверяем версию pywebview для обратной совместимости
-        import inspect
-        start_signature = inspect.signature(webview.start)
-        if 'api' in start_signature.parameters:
-            # Новая версия pywebview (4.0+)
-            browser_logger.debug("Используем новый API pywebview 4.0+")
-            webview.start(api=api, debug=False, http_server=True)
-        else:
-            # Старая версия pywebview (3.x)
-            browser_logger.debug("Используем legacy API pywebview 3.x")
-            # В старых версиях API передается через create_window
-            webview.start(debug=False, http_server=True)
+        # Запускаем webview без параметра api (совместимо с pywebview 3.x, 4.x и 5.x)
+        browser_logger.debug("Запуск webview с универсальным методом")
+        # API объект уже передан в create_window, дополнительно передавать не нужно
+        webview.start(debug=False, http_server=True)
         browser_logger.info("✅ Windows 11 браузер успешно запущен")
     except Exception as e:
         log_exception(browser_logger, e, "webview.start")
