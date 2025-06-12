@@ -2,20 +2,26 @@ import json
 import os
 from urllib.parse import quote_plus
 import webview
+from src.core.tab_manager import TabManager
+from src.logger import browser_logger, log_exception
 
 
 class BrowserApi:
-    """API класс для взаимодействия JavaScript с Python."""
+    """API класс для взаимодействия JavaScript с Python с поддержкой вкладок."""
     
     def __init__(self):
         self.current_window = None
+        self.tab_manager = TabManager()
+        
+        # Создаем первую вкладку по умолчанию
+        self.tab_manager.create_tab("https://www.google.com", "Google")
         
     def set_window(self, window):
         """Устанавливает ссылку на окно webview."""
         self.current_window = window
         
     def navigate(self, url):
-        """Навигация по URL."""
+        """Навигация по URL в активной вкладке."""
         if not self.current_window:
             print("Window not initialized")
             return
@@ -26,6 +32,12 @@ class BrowserApi:
                 url = 'https://' + url
             else:
                 url = 'https://www.google.com/search?q=' + quote_plus(url)
+        
+        # Обновляем URL активной вкладки
+        active_tab = self.tab_manager.get_active_tab()
+        if active_tab:
+            active_tab.url = url
+            active_tab.title = url  # Временно, потом можно получить настоящий title
                 
         print(f"Navigating to: {url}")
         self.current_window.load_url(url)
@@ -34,33 +46,89 @@ class BrowserApi:
         """Возвращается на домашнюю страницу (эмуляция назад)."""
         print("Going back (to home)")
         if self.current_window:
-            self.current_window.load_url('https://www.google.com')
+            self.navigate('https://www.google.com')
             
     def go_forward(self):
         """Переходит на домашнюю страницу (эмуляция вперед)."""
         print("Going forward (to home)")
         if self.current_window:
-            self.current_window.load_url('https://www.google.com')
+            self.navigate('https://www.google.com')
             
     def refresh(self):
         """Обновляет текущую страницу."""
         print("Refreshing page")
         if self.current_window:
             self.current_window.reload()
+    
+    # Новые методы для работы с вкладками
+    def create_new_tab(self, url="https://www.google.com"):
+        """Создает новую вкладку."""
+        tab = self.tab_manager.create_tab(url, "Новая вкладка")
+        print(f"Created new tab: {tab.id}")
+        return {
+            'id': tab.id,
+            'url': tab.url,
+            'title': tab.title,
+            'is_pinned': tab.is_pinned
+        }
+    
+    def close_tab(self, tab_id):
+        """Закрывает вкладку."""
+        result = self.tab_manager.close_tab(tab_id)
+        if result and self.current_window:
+            # Если закрыли активную вкладку, переключаемся на другую
+            active_tab = self.tab_manager.get_active_tab()
+            if active_tab:
+                self.current_window.load_url(active_tab.url)
+        return result
+    
+    def switch_tab(self, tab_id):
+        """Переключается на вкладку."""
+        result = self.tab_manager.switch_tab(tab_id)
+        if result and self.current_window:
+            active_tab = self.tab_manager.get_active_tab()
+            if active_tab:
+                self.current_window.load_url(active_tab.url)
+        return result
+    
+    def get_all_tabs(self):
+        """Возвращает список всех вкладок."""
+        tabs = []
+        for tab in self.tab_manager.tabs:
+            tabs.append({
+                'id': tab.id,
+                'url': tab.url,
+                'title': tab.title,
+                'is_pinned': tab.is_pinned,
+                'is_active': tab.id == self.tab_manager.active_tab_id
+            })
+        return tabs
+    
+    def pin_tab(self, tab_id):
+        """Закрепляет/открепляет вкладку."""
+        return self.tab_manager.pin_tab(tab_id)
+    
+    def move_tab(self, tab_id, new_index):
+        """Перемещает вкладку на новую позицию."""
+        return self.tab_manager.move_tab(tab_id, new_index)
 
 
 def start():
     """Запускает пользовательский интерфейс браузера с современным дизайном."""
+    browser_logger.info("Запуск UI с поддержкой вкладок...")
+    
     bookmarks = []
     try:
         with open(os.path.join('resources', 'bookmarks.json'), 'r', encoding='utf-8') as bf:
             bookmarks = json.load(bf)
+        browser_logger.info(f"Загружено {len(bookmarks)} закладок")
     except FileNotFoundError:
         # Создаём закладки по умолчанию если файл не найден
         bookmarks = [
             {"name": "YouTube", "url": "https://www.youtube.com"},
             {"name": "2IP", "url": "https://2ip.ru"}
         ]
+        browser_logger.warning("Файл закладок не найден, используются закладки по умолчанию")
 
     start_url = 'https://www.google.com'
     
@@ -234,6 +302,110 @@ def start():
                 background: rgba(255,255,255,0.3);
                 transform: translateY(-1px);
             }}
+            
+            /* Стили для панели вкладок */
+            .tabs-container {{
+                background: #f8fafc;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+                padding: 0 8px;
+                gap: 4px;
+                overflow-x: auto;
+                min-height: 40px;
+            }}
+            
+            .tab {{
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px 8px 0 0;
+                padding: 8px 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+                max-width: 200px;
+                position: relative;
+                user-select: none;
+            }}
+            
+            .tab:hover {{
+                background: #f1f5f9;
+                border-color: #cbd5e1;
+            }}
+            
+            .tab.active {{
+                background: #6366f1;
+                color: white;
+                border-color: #6366f1;
+                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            }}
+            
+            .tab.pinned {{
+                min-width: 40px;
+                padding: 8px;
+                border-radius: 8px;
+            }}
+            
+            .tab-title {{
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: 13px;
+            }}
+            
+            .tab-close {{
+                background: rgba(0,0,0,0.1);
+                border: none;
+                border-radius: 4px;
+                color: inherit;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                opacity: 0.7;
+                transition: all 0.2s ease;
+                font-size: 12px;
+            }}
+            
+            .tab-close:hover {{
+                background: rgba(0,0,0,0.2);
+                opacity: 1;
+            }}
+            
+            .tab.active .tab-close {{
+                background: rgba(255,255,255,0.2);
+            }}
+            
+            .tab.active .tab-close:hover {{
+                background: rgba(255,255,255,0.3);
+            }}
+            
+            .new-tab-btn {{
+                background: #f1f5f9;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                color: #64748b;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 16px;
+                margin-left: 4px;
+            }}
+            
+            .new-tab-btn:hover {{
+                background: #e2e8f0;
+                color: #475569;
+            }}
         </style>
     </head>
     <body>
@@ -257,6 +429,11 @@ def start():
     
     html += f"""
                 </select>
+            </div>
+            
+            <!-- Панель вкладок -->
+            <div class="tabs-container" id="tabsContainer">
+                <button class="new-tab-btn" onclick="createNewTab()" title="Новая вкладка">+</button>
             </div>
             
             <div class="webview-container" id="content">
@@ -285,6 +462,8 @@ def start():
                 if (window.pywebview && window.pywebview.api) {{
                     window.pywebview.api.navigate(url).then(() => {{
                         statusText.textContent = 'Загружено через VLESS прокси • 127.0.0.1:1080';
+                        // Обновляем заголовок активной вкладки
+                        updateActiveTabTitle(url);
                     }}).catch((e) => {{
                         console.error('Navigation error:', e);
                         statusText.textContent = 'Ошибка загрузки • ' + e.message;
@@ -294,6 +473,8 @@ def start():
                     setTimeout(() => {{
                         content.innerHTML = '<div>📄 Симуляция загрузки: ' + url + '</div>';
                         statusText.textContent = 'Загружено через VLESS прокси • 127.0.0.1:1080';
+                        // Обновляем заголовок активной вкладки
+                        updateActiveTabTitle(url);
                     }}, 1000);
                 }}
                 
@@ -346,16 +527,136 @@ def start():
             window.addEventListener('pywebviewready', function() {{
                 console.log('PyWebview API готов');
                 statusText.textContent = 'Готов к работе через VLESS прокси • 127.0.0.1:1080';
+                loadTabs(); // Загружаем список вкладок
             }});
+            
+            // === ФУНКЦИИ ДЛЯ РАБОТЫ С ВКЛАДКАМИ ===
+            
+            function createNewTab() {{
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.create_new_tab().then(function(tab) {{
+                        addTabToUI(tab);
+                        switchToTab(tab.id);
+                    }}).catch(function(e) {{
+                        console.error('Ошибка создания вкладки:', e);
+                    }});
+                }} else {{
+                    // Fallback режим
+                    console.log('Создание новой вкладки (fallback режим)');
+                }}
+            }}
+            
+            function closeTab(event, tabId) {{
+                event.stopPropagation(); // Предотвращаем переключение на вкладку
+                
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.close_tab(tabId).then(function(result) {{
+                        if (result) {{
+                            removeTabFromUI(tabId);
+                        }}
+                    }}).catch(function(e) {{
+                        console.error('Ошибка закрытия вкладки:', e);
+                    }});
+                }} else {{
+                    // Fallback режим
+                    removeTabFromUI(tabId);
+                }}
+            }}
+            
+            function switchToTab(tabId) {{
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.switch_tab(tabId).then(function(result) {{
+                        if (result) {{
+                            updateActiveTab(tabId);
+                        }}
+                    }}).catch(function(e) {{
+                        console.error('Ошибка переключения вкладки:', e);
+                    }});
+                }} else {{
+                    // Fallback режим
+                    updateActiveTab(tabId);
+                }}
+            }}
+            
+            function loadTabs() {{
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.get_all_tabs().then(function(tabs) {{
+                        renderTabs(tabs);
+                    }}).catch(function(e) {{
+                        console.error('Ошибка загрузки вкладок:', e);
+                    }});
+                }}
+            }}
+            
+            function renderTabs(tabs) {{
+                const tabsContainer = document.getElementById('tabsContainer');
+                const newTabBtn = tabsContainer.querySelector('.new-tab-btn');
+                
+                // Очищаем существующие вкладки (кроме кнопки "+")
+                tabsContainer.querySelectorAll('.tab').forEach(tab => tab.remove());
+                
+                // Добавляем все вкладки
+                tabs.forEach(function(tab) {{
+                    addTabToUI(tab, newTabBtn);
+                }});
+            }}
+            
+            function addTabToUI(tab, beforeElement) {{
+                const tabsContainer = document.getElementById('tabsContainer');
+                const newTabBtn = beforeElement || tabsContainer.querySelector('.new-tab-btn');
+                
+                const tabElement = document.createElement('div');
+                tabElement.className = 'tab' + (tab.is_active ? ' active' : '') + (tab.is_pinned ? ' pinned' : '');
+                tabElement.setAttribute('data-tab-id', tab.id);
+                tabElement.onclick = () => switchToTab(tab.id);
+                
+                const title = tab.title.length > 20 ? tab.title.substring(0, 20) + '...' : tab.title;
+                
+                tabElement.innerHTML = `
+                    <span class="tab-title">${{title}}</span>
+                    <button class="tab-close" onclick="closeTab(event, '${{tab.id}}')" title="Закрыть вкладку">×</button>
+                `;
+                
+                tabsContainer.insertBefore(tabElement, newTabBtn);
+            }}
+            
+            function removeTabFromUI(tabId) {{
+                const tabElement = document.querySelector(`[data-tab-id="${{tabId}}"]`);
+                if (tabElement) {{
+                    tabElement.remove();
+                }}
+            }}
+            
+            function updateActiveTab(tabId) {{
+                // Убираем активность со всех вкладок
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                
+                // Добавляем активность к выбранной вкладке
+                const activeTab = document.querySelector(`[data-tab-id="${{tabId}}"]`);
+                if (activeTab) {{
+                    activeTab.classList.add('active');
+                }}
+            }}
+            
+            // Обновление заголовка активной вкладки при навигации
+            function updateActiveTabTitle(title) {{
+                const activeTab = document.querySelector('.tab.active .tab-title');
+                if (activeTab) {{
+                    const shortTitle = title.length > 20 ? title.substring(0, 20) + '...' : title;
+                    activeTab.textContent = shortTitle;
+                }}
+            }}
         </script>
     </body>
     </html>
     """
 
     # Создаём API объект
+    browser_logger.info("Создание BrowserApi с TabManager...")
     api = BrowserApi()
     
     # Создаём окно
+    browser_logger.info("Создание webview окна...")
     window = webview.create_window(
         'Лёгкий браузер с VLESS VPN', 
         html,
@@ -366,11 +667,17 @@ def start():
     
     # Связываем API с окном
     api.set_window(window)
+    browser_logger.info("API связан с окном webview")
     
-    print("Запуск браузера с современным интерфейсом...")
+    browser_logger.info("Запуск браузера с современным интерфейсом...")
     
-    # Запускаем webview с API (правильный способ для pywebview 4.0+)
-    webview.start(api=api, debug=True, http_server=True)
+    try:
+        # Запускаем webview с API (правильный способ для pywebview 4.0+)
+        webview.start(api=api, debug=True, http_server=True)
+        browser_logger.info("Браузер успешно запущен")
+    except Exception as e:
+        log_exception(browser_logger, e, "webview.start")
+        raise
 
 
 if __name__ == '__main__':

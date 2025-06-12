@@ -1,2 +1,3 @@
 # Лёгкий браузер с VLESS VPN - Зависимости Python
 pywebview>=4.0.0
+PyQt5>=5.15.0

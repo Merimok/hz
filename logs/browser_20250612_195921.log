@@ -1,0 +1,82 @@
+2025-06-12 19:59:21 | INFO     | browser | setup_logger:53 | Логирование настроено. Файл логов: logs/browser_20250612_195921.log
+2025-06-12 19:59:21 | INFO     | browser | setup_logger:54 | ============================================================
+2025-06-12 19:59:21 | INFO     | browser | main:207 | === ЗАПУСК ЛЁГКОГО БРАУЗЕРА С VLESS VPN ===
+2025-06-12 19:59:21 | INFO     | browser | main:211 | Этап 1: Загрузка VLESS URI
+2025-06-12 19:59:21 | INFO     | browser | get_vless_uri:17 | Загрузка VLESS URI...
+2025-06-12 19:59:21 | INFO     | browser | get_vless_uri:24 | VLESS URI загружен из vless.txt
+2025-06-12 19:59:21 | INFO     | browser | get_vless_uri:37 | VLESS URI успешно загружен (длина: 172 символов)
+2025-06-12 19:59:21 | INFO     | browser | main:217 | Этап 2: Генерация конфигурации
+2025-06-12 19:59:21 | INFO     | browser | main:221 | Этап 3: Настройка прокси
+2025-06-12 19:59:21 | DEBUG    | browser | main:224 | Прокси настроен: SOCKS5://127.0.0.1:1080
+2025-06-12 19:59:21 | INFO     | browser | main:227 | Этап 4: Запуск Xray
+2025-06-12 19:59:21 | INFO     | browser | main:231 | Ожидание запуска Xray (2 секунды)...
+2025-06-12 19:59:23 | INFO     | browser | main:236 | Этап 5: Запуск браузера...
+2025-06-12 19:59:23 | INFO     | browser | main:240 | Попытка запуска ui_modern_fixed
+2025-06-12 19:59:23 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_modern_fixed: ModuleNotFoundError: No module named 'core'
+2025-06-12 19:59:23 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 241, in main
+    import src.ui_modern_fixed as ui_modern_fixed
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 5, in <module>
+    from core.tab_manager import TabManager
+ModuleNotFoundError: No module named 'core'
+
+2025-06-12 19:59:23 | INFO     | browser | main:247 | Fallback на ui_modern
+2025-06-12 19:59:23 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_modern: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 19:59:23 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 241, in main
+    import src.ui_modern_fixed as ui_modern_fixed
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 5, in <module>
+    from core.tab_manager import TabManager
+ModuleNotFoundError: No module named 'core'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 407, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 19:59:23 | INFO     | browser | main:254 | Fallback на ui
+2025-06-12 19:59:23 | ERROR    | browser | log_exception:61 | ОШИБКА в ui: KeyError: ' if (e'
+2025-06-12 19:59:23 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 241, in main
+    import src.ui_modern_fixed as ui_modern_fixed
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 5, in <module>
+    from core.tab_manager import TabManager
+ModuleNotFoundError: No module named 'core'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 407, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui.start()
+  File "/var/home/tannim/hz/src/ui.py", line 38, in start
+    """.format(start=start_url, options=options)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: ' if (e'
+
+2025-06-12 19:59:23 | INFO     | browser | main:261 | Fallback на ui_simple

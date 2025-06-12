@@ -8,21 +8,34 @@ import zipfile
 import io
 from urllib.parse import urlparse, parse_qs
 
+# Импортируем систему логирования
+from src.logger import browser_logger, log_exception
+
 
 def get_vless_uri():
     """Загружает VLESS URI из переменной окружения или файла vless.txt."""
+    browser_logger.info("Загрузка VLESS URI...")
+    
     uri = os.getenv('VLESS_URI')
     if not uri:
         try:
             with open('vless.txt', 'r', encoding='utf-8') as f:
                 uri = f.readline().strip()
+            browser_logger.info("VLESS URI загружен из vless.txt")
         except FileNotFoundError:
             try:
                 with open(os.path.join('config', 'vless.txt'), 'r', encoding='utf-8') as f:
                     uri = f.readline().strip()
+                browser_logger.info("VLESS URI загружен из config/vless.txt")
             except FileNotFoundError:
-                print("VLESS URI не найден. Проверьте файл vless.txt или переменную VLESS_URI")
+                browser_logger.error("VLESS URI не найден. Проверьте файл vless.txt или переменную VLESS_URI")
                 uri = ''
+    else:
+        browser_logger.info("VLESS URI загружен из переменной окружения")
+    
+    if uri:
+        browser_logger.info(f"VLESS URI успешно загружен (длина: {len(uri)} символов)")
+    
     return uri
 
 
@@ -191,55 +204,91 @@ def start_xray():
 
 def main():
     """Главная функция приложения."""
-    print("=== Лёгкий браузер с VLESS VPN ===")
+    browser_logger.info("=== ЗАПУСК ЛЁГКОГО БРАУЗЕРА С VLESS VPN ===")
     
-    # Загрузка и проверка VLESS URI
-    uri = get_vless_uri()
-    if not uri:
-        print("Предупреждение: VLESS URI не настроен")
-    
-    # Генерация конфигурации
-    generate_config(uri)
-
-    # Настройка прокси для SOCKS
-    os.environ['HTTP_PROXY'] = 'socks5://127.0.0.1:1080'
-    os.environ['HTTPS_PROXY'] = 'socks5://127.0.0.1:1080'
-
-    # Запуск Xray в фоновом режиме
-    threading.Thread(target=start_xray, daemon=True).start()
-    
-    # Небольшая задержка для запуска Xray
-    import time
-    time.sleep(2)
-    
-    # Запуск браузера с современным интерфейсом
-    print("Запуск браузера...")
     try:
-        # Пробуем использовать исправленный интерфейс
-        import src.ui_modern_fixed as ui_modern_fixed
-        ui_modern_fixed.start()
-    except Exception as e:
-        print(f"Ошибка запуска современного интерфейса: {e}")
+        # Загрузка и проверка VLESS URI
+        browser_logger.info("Этап 1: Загрузка VLESS URI")
+        uri = get_vless_uri()
+        if not uri:
+            browser_logger.warning("VLESS URI не настроен")
+        
+        # Генерация конфигурации
+        browser_logger.info("Этап 2: Генерация конфигурации")
+        generate_config(uri)
+
+        # Настройка прокси для SOCKS
+        browser_logger.info("Этап 3: Настройка прокси")
+        os.environ['HTTP_PROXY'] = 'socks5://127.0.0.1:1080'
+        os.environ['HTTPS_PROXY'] = 'socks5://127.0.0.1:1080'
+        browser_logger.debug("Прокси настроен: SOCKS5://127.0.0.1:1080")
+
+        # Запуск Xray в фоновом режиме
+        browser_logger.info("Этап 4: Запуск Xray")
+        threading.Thread(target=start_xray, daemon=True).start()
+        
+        # Небольшая задержка для запуска Xray
+        browser_logger.info("Ожидание запуска Xray (2 секунды)...")
+        import time
+        time.sleep(2)
+        
+        # Запуск браузера с современным интерфейсом
+        browser_logger.info("Этап 5: Запуск браузера...")
+        
         try:
-            # Fallback на новый интерфейс
-            import src.ui_modern as ui_modern
-            ui_modern.start()
+            # Пробуем использовать УЛЬТРА-СОВРЕМЕННЫЙ интерфейс
+            browser_logger.info("Попытка запуска ui_ultra_modern")
+            import src.ui_ultra_modern as ui_ultra_modern
+            ui_ultra_modern.start()
         except Exception as e:
-            print(f"Ошибка запуска модернизированного интерфейса: {e}")
+            log_exception(browser_logger, e, "ui_ultra_modern")
             try:
-                # Fallback на старый интерфейс
-                import src.ui as ui
-                ui.start()
+                # Пробуем использовать исправленный интерфейс
+                browser_logger.info("Fallback на ui_modern_fixed")
+                import src.ui_modern_fixed as ui_modern_fixed
+                ui_modern_fixed.start()
             except Exception as e:
-                print(f"Ошибка запуска базового интерфейса: {e}")
+                log_exception(browser_logger, e, "ui_modern_fixed")
                 try:
-                    # Последний fallback - простой интерфейс
-                    import src.ui_simple as ui_simple
-                    ui_simple.start()
+                    # Fallback на новый интерфейс
+                    browser_logger.info("Fallback на ui_modern")
+                    import src.ui_modern as ui_modern
+                    ui_modern.start()
                 except Exception as e:
-                    print(f"Критическая ошибка: не удалось запустить ни один интерфейс: {e}")
-                    print("Проверьте установку зависимостей: pip install pywebview>=4.0.0")
+                    log_exception(browser_logger, e, "ui_modern")
+                    try:
+                        # Fallback на старый интерфейс
+                        browser_logger.info("Fallback на ui")
+                        import src.ui as ui
+                        ui.start()
+                    except Exception as e:
+                        log_exception(browser_logger, e, "ui")
+                        try:
+                            # Последний fallback на простой интерфейс
+                            browser_logger.info("Fallback на ui_simple")
+                            import src.ui_simple as ui_simple
+                            ui_simple.start()
+                        except Exception as e:
+                            log_exception(browser_logger, e, "ui_simple")
+                            browser_logger.critical("Все UI интерфейсы недоступны!")
+                            print("Ошибка: Не удалось запустить ни один интерфейс")
+                            print("Проверьте установку зависимостей: pip install pywebview>=4.0.0")
+                            print("\nНажмите Enter для выхода...")
+                            input()
+                        
+    except Exception as e:
+        log_exception(browser_logger, e, "main")
+        print(f"\nКритическая ошибка в main(): {e}")
+        print("\nНажмите Enter для выхода...")
+        input()
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nПрограмма завершена пользователем")
+    except Exception as e:
+        print(f"\nНеожиданная ошибка: {e}")
+        print("\nНажмите Enter для выхода...")
+        input()
