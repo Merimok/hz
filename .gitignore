@@ -1,0 +1,9 @@
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Build output
+/dist/
+
+# Generated config
+config/config.json
