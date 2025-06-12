@@ -2,6 +2,7 @@ name: Build Lightweight Browser with VLESS VPN
 on:
   push:
     paths:
+
       - 'src/**'
       - 'config/vless.txt'
       - 'resources/bookmarks.json'
@@ -11,6 +12,17 @@ on:
       - 'src/**'
       - 'config/vless.txt'
       - 'resources/bookmarks.json'
+=======
+      - 'main.py'
+      - 'vless.txt'
+      - 'config.json'
+      - '.github/workflows/build.yml'
+  pull_request:
+    paths:
+      - 'main.py'
+      - 'vless.txt'
+      - 'config.json'
+
       - '.github/workflows/build.yml'
 jobs:
   build:
@@ -20,13 +32,19 @@ jobs:
         python-version: [3.10]
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v4
+=======
+      - name: Setup Python
+        uses: actions/setup-python@v4
+
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pywebview pyinstaller
+
       - name: Download Xray-core
         run: |
           powershell -Command "Invoke-WebRequest 'https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip' -OutFile xray.zip"
@@ -36,8 +54,29 @@ jobs:
       - name: Copy VLESS config to artifact directory
         run: |
           Copy-Item config\vless.txt dist\
+
+      - name: Install Xray-core
+        run: |
+          powershell -Command "Invoke-WebRequest 'https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip' -OutFile xray.zip"
+          powershell -Command "Expand-Archive -Path xray.zip -DestinationPath xray"
+          powershell -Command "Move-Item xray\xray.exe ."
+      - name: Build executable
+        run: |
+          pyinstaller --onefile main.py
+      - name: Copy Xray next to main.exe
+        run: |
+          Copy-Item xray.exe dist\
+      - name: Create release archive
+        run: |
+          Compress-Archive -Path dist/main.exe,dist/xray.exe -DestinationPath dist/release.zip
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: lightweight-browser-vless
+
           path: dist/*
+=======
+          path: dist/release.zip
+
+
