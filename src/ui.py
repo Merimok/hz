@@ -5,6 +5,7 @@ import webview
 
 
 def start():
+    """Запускает пользовательский интерфейс браузера с закладками."""
     bookmarks = []
     with open(os.path.join('resources', 'bookmarks.json'), 'r') as bf:
         bookmarks = json.load(bf)
