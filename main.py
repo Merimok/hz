@@ -6,14 +6,15 @@ import json
 from urllib.parse import urlparse, parse_qs
 
 
-def get_vless_uri():
-    uri = os.getenv('VLESS_URI')
+def get_vless_uri() -> str:
+    """Return VLESS URI from env or vless.txt."""
+    uri = os.environ.get("VLESS_URI")
     if not uri:
         try:
-            with open('vless.txt', 'r', encoding='utf-8') as f:
+            with open("vless.txt", "r", encoding="utf-8") as f:
                 uri = f.readline().strip()
         except FileNotFoundError:
-            uri = ''
+            uri = ""
     return uri
 
 
