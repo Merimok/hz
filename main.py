@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import threading
 import webview
@@ -7,6 +8,12 @@ import urllib.request
 import zipfile
 import io
 from urllib.parse import urlparse, parse_qs
+
+# Создаем папку для логов если её нет
+os.makedirs('logs', exist_ok=True)
+
+# Добавляем текущую папку в PYTHONPATH для импорта src модулей  
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Импортируем систему логирования
 from src.logger import browser_logger, log_exception

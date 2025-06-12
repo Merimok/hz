@@ -853,7 +853,8 @@ def start():
         width=1400,
         height=900,
         min_size=(1000, 700),
-        resizable=True
+        resizable=True,
+        js_api=api  # Передаем API для старых версий
     )
     
     # Связываем API с окном
@@ -863,8 +864,18 @@ def start():
     browser_logger.info("🎨 Запуск современного браузера с Material Design 3...")
     
     try:
-        # Запускаем webview с API
-        webview.start(api=api, debug=False, http_server=True)
+        # Проверяем версию pywebview для обратной совместимости
+        import inspect
+        start_signature = inspect.signature(webview.start)
+        if 'api' in start_signature.parameters:
+            # Новая версия pywebview (4.0+)
+            browser_logger.debug("Используем новый API pywebview 4.0+")
+            webview.start(api=api, debug=False, http_server=True)
+        else:
+            # Старая версия pywebview (3.x)
+            browser_logger.debug("Используем legacy API pywebview 3.x")
+            # В старых версиях API передается через create_window
+            webview.start(debug=False, http_server=True)
         browser_logger.info("✅ Современный браузер успешно запущен")
     except Exception as e:
         log_exception(browser_logger, e, "webview.start")

@@ -1,0 +1,154 @@
+2025-06-12 20:20:09 | INFO     | browser | setup_logger:53 | Логирование настроено. Файл логов: logs/browser_20250612_202009.log
+2025-06-12 20:20:09 | INFO     | browser | setup_logger:54 | ============================================================
+2025-06-12 20:20:09 | INFO     | browser | main:214 | === ЗАПУСК ЛЁГКОГО БРАУЗЕРА С VLESS VPN ===
+2025-06-12 20:20:09 | INFO     | browser | main:218 | Этап 1: Загрузка VLESS URI
+2025-06-12 20:20:09 | INFO     | browser | get_vless_uri:24 | Загрузка VLESS URI...
+2025-06-12 20:20:09 | INFO     | browser | get_vless_uri:31 | VLESS URI загружен из vless.txt
+2025-06-12 20:20:09 | INFO     | browser | get_vless_uri:44 | VLESS URI успешно загружен (длина: 172 символов)
+2025-06-12 20:20:09 | INFO     | browser | main:224 | Этап 2: Генерация конфигурации
+2025-06-12 20:20:09 | INFO     | browser | main:228 | Этап 3: Настройка прокси
+2025-06-12 20:20:09 | DEBUG    | browser | main:231 | Прокси настроен: SOCKS5://127.0.0.1:1080
+2025-06-12 20:20:09 | INFO     | browser | main:234 | Этап 4: Запуск Xray
+2025-06-12 20:20:09 | INFO     | browser | main:238 | Ожидание запуска Xray (2 секунды)...
+2025-06-12 20:20:11 | INFO     | browser | main:243 | Этап 5: Запуск браузера...
+2025-06-12 20:20:11 | INFO     | browser | main:247 | Попытка запуска ui_ultra_modern
+2025-06-12 20:20:11 | INFO     | browser | start:131 | 🚀 Запуск СОВРЕМЕННОГО браузера с TabManager...
+2025-06-12 20:20:11 | INFO     | browser | start:138 | Загружено 2 закладок
+2025-06-12 20:20:11 | INFO     | browser | start:845 | Создание ModernBrowserApi...
+2025-06-12 20:20:11 | INFO     | browser | start:849 | Создание современного webview окна...
+2025-06-12 20:20:11 | INFO     | browser | start:861 | API связан с окном webview
+2025-06-12 20:20:11 | INFO     | browser | start:863 | 🎨 Запуск современного браузера с Material Design 3...
+2025-06-12 20:20:11 | ERROR    | browser | log_exception:61 | ОШИБКА в webview.start: TypeError: start() got an unexpected keyword argument 'api'
+2025-06-12 20:20:11 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 867, in start
+    webview.start(api=api, debug=False, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+2025-06-12 20:20:11 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_ultra_modern: TypeError: start() got an unexpected keyword argument 'api'
+2025-06-12 20:20:11 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 867, in start
+    webview.start(api=api, debug=False, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+2025-06-12 20:20:11 | INFO     | browser | main:254 | Fallback на ui_modern_fixed
+2025-06-12 20:20:11 | INFO     | browser | start:118 | Запуск UI с поддержкой вкладок...
+2025-06-12 20:20:11 | INFO     | browser | start:124 | Загружено 2 закладок
+2025-06-12 20:20:11 | INFO     | browser | start:655 | Создание BrowserApi с TabManager...
+2025-06-12 20:20:11 | INFO     | browser | start:659 | Создание webview окна...
+2025-06-12 20:20:11 | INFO     | browser | start:670 | API связан с окном webview
+2025-06-12 20:20:11 | INFO     | browser | start:672 | Запуск браузера с современным интерфейсом...
+2025-06-12 20:20:11 | ERROR    | browser | log_exception:61 | ОШИБКА в webview.start: TypeError: start() got an unexpected keyword argument 'api'
+2025-06-12 20:20:11 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 867, in start
+    webview.start(api=api, debug=False, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 676, in start
+    webview.start(api=api, debug=True, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+2025-06-12 20:20:11 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_modern_fixed: TypeError: start() got an unexpected keyword argument 'api'
+2025-06-12 20:20:11 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 867, in start
+    webview.start(api=api, debug=False, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 676, in start
+    webview.start(api=api, debug=True, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+2025-06-12 20:20:11 | INFO     | browser | main:261 | Fallback на ui_modern
+2025-06-12 20:20:11 | ERROR    | browser | log_exception:61 | ОШИБКА в ui_modern: WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+2025-06-12 20:20:11 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 867, in start
+    webview.start(api=api, debug=False, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 676, in start
+    webview.start(api=api, debug=True, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 263, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 407, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+2025-06-12 20:20:11 | INFO     | browser | main:268 | Fallback на ui
+2025-06-12 20:20:11 | ERROR    | browser | log_exception:61 | ОШИБКА в ui: KeyError: ' if (e'
+2025-06-12 20:20:11 | DEBUG    | browser | log_exception:63 | Полный traceback:
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 249, in main
+    ui_ultra_modern.start()
+  File "/var/home/tannim/hz/src/ui_ultra_modern.py", line 867, in start
+    webview.start(api=api, debug=False, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 256, in main
+    ui_modern_fixed.start()
+  File "/var/home/tannim/hz/src/ui_modern_fixed.py", line 676, in start
+    webview.start(api=api, debug=True, http_server=True)
+TypeError: start() got an unexpected keyword argument 'api'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 263, in main
+    ui_modern.start()
+  File "/var/home/tannim/hz/src/ui_modern.py", line 407, in start
+    webview.start(debug=True, http_server=True)
+  File "/var/data/python/lib/python3.12/site-packages/webview/__init__.py", line 176, in start
+    guilib = initialize(gui)
+             ^^^^^^^^^^^^^^^
+  File "/var/data/python/lib/python3.12/site-packages/webview/guilib.py", line 124, in initialize
+    raise WebViewException(
+webview.errors.WebViewException: You must have either QT or GTK with Python extensions installed in order to use pywebview.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/tannim/hz/main.py", line 270, in main
+    ui.start()
+  File "/var/home/tannim/hz/src/ui.py", line 38, in start
+    """.format(start=start_url, options=options)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: ' if (e'
+
+2025-06-12 20:20:11 | INFO     | browser | main:275 | Fallback на ui_simple

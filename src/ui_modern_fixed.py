@@ -662,7 +662,8 @@ def start():
         html,
         width=1200,
         height=800,
-        min_size=(800, 600)
+        min_size=(800, 600),
+        js_api=api  # Передаем API для старых версий
     )
     
     # Связываем API с окном
@@ -672,8 +673,17 @@ def start():
     browser_logger.info("Запуск браузера с современным интерфейсом...")
     
     try:
-        # Запускаем webview с API (правильный способ для pywebview 4.0+)
-        webview.start(api=api, debug=True, http_server=True)
+        # Проверяем версию pywebview для обратной совместимости
+        import inspect
+        start_signature = inspect.signature(webview.start)
+        if 'api' in start_signature.parameters:
+            # Новая версия pywebview (4.0+)
+            browser_logger.debug("Используем новый API pywebview 4.0+")
+            webview.start(api=api, debug=True, http_server=True)
+        else:
+            # Старая версия pywebview (3.x)
+            browser_logger.debug("Используем legacy API pywebview 3.x")
+            webview.start(debug=True, http_server=True)
         browser_logger.info("Браузер успешно запущен")
     except Exception as e:
         log_exception(browser_logger, e, "webview.start")
