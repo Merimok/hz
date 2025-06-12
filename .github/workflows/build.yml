@@ -41,3 +41,9 @@ jobs:
         with:
           name: lightweight-browser-vless
           path: dist/main.exe
+
+  uses: actions/upload-artifact@v3
+  with:
+    name: lightweight-browser-vless
+    path: dist/main
+

@@ -4,9 +4,6 @@ This repository contains a minimal Python application that runs a webview-based 
 
 The project also includes a GitHub Actions workflow to build a standalone Windows executable using PyInstaller and bundle Xray-core.
 
-After a successful run, the executable can be downloaded from the workflow as the
-`lightweight-browser-vless` artifact.
-
 ## Usage
 
 1. Provide a VLESS URI via the `VLESS_URI` environment variable or in `vless.txt`.
