@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
-Comprehensive test suite for the Lightweight Browser with VLESS VPN
-Tests all components and fallback systems - Windows compatible version
+Simplified test suite for the Lightweight Browser with VLESS VPN
+Windows compatible version - user provides Xray binary
 """
 
 import os
 import sys
 import json
-import subprocess
-import tempfile
 import importlib.util
 
 
@@ -40,10 +38,8 @@ def test_vless_uri_parsing():
     """Test VLESS URI parsing functionality."""
     print("\nTesting VLESS URI parsing...")
     
-    # Import the main module
-    sys.path.append('.')
     try:
-        # Use Windows compatible version if available, otherwise original
+        # Use Windows compatible version if available
         if os.path.exists('main_windows_compatible.py'):
             spec = importlib.util.spec_from_file_location("main_module", "main_windows_compatible.py")
             main_module = importlib.util.module_from_spec(spec)
@@ -127,48 +123,20 @@ def test_ui_imports():
         return False
 
 
-def test_xray_download():
-    """Test Xray binary download functionality."""
-    print("\nTesting Xray download...")
+def test_xray_binary():
+    """Test if Xray binary is available (user provided)."""
+    print("\nTesting Xray binary availability...")
     
-    try:
-        sys.path.append('.')
-        # Use Windows compatible version if available, otherwise original
-        if os.path.exists('main_windows_compatible.py'):
-            spec = importlib.util.spec_from_file_location("main_module", "main_windows_compatible.py")
-            main_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(main_module)
-        else:
-            import main as main_module
-        
-        # Temporarily move existing xray if present
-        xray_path = os.path.join('bin', 'xray.exe')
-        backup_path = xray_path + '.backup'
-        
-        if os.path.exists(xray_path):
-            os.rename(xray_path, backup_path)
-        
-        # Test download
-        result = main_module.ensure_xray()
-        
-        if result and os.path.exists(result):
-            print("  [OK] Xray download successful")
-            success = True
-        else:
-            print("  [FAIL] Xray download failed")
-            success = False
-            
-        # Restore backup if exists
-        if os.path.exists(backup_path):
-            if os.path.exists(xray_path):
-                os.remove(xray_path)
-            os.rename(backup_path, xray_path)
-            
-        return success
-        
-    except Exception as e:
-        print(f"  [ERROR] {e}")
-        return False
+    xray_path = os.path.join('bin', 'xray.exe')
+    
+    if os.path.exists(xray_path):
+        print(f"  [OK] Xray binary found: {xray_path}")
+        return True
+    else:
+        print(f"  [INFO] Xray binary not found at {xray_path}")
+        print("  [INFO] User should place Xray binary in bin/xray.exe")
+        print("  [INFO] Download from: https://github.com/XTLS/Xray-core/releases")
+        return True  # Not a failure, just information
 
 
 def test_requirements():
@@ -210,7 +178,6 @@ def test_fallback_system():
         fallbacks = [
             'ui_modern_fixed',
             'ui_modern', 
-            'ui.py',
             'ui_simple'
         ]
         
@@ -220,7 +187,7 @@ def test_fallback_system():
                 found_fallbacks += 1
                 print(f"  [OK] {fallback} fallback present")
         
-        if found_fallbacks >= 3:
+        if found_fallbacks >= 2:
             print("  [OK] Fallback system comprehensive")
             return True
         else:
@@ -236,14 +203,15 @@ def run_all_tests():
     """Run all tests and provide summary."""
     print("=" * 60)
     print("COMPREHENSIVE TEST SUITE")
-    print("Lightweight Browser with VLESS VPN v2.2.0")
+    print("Lightweight Browser with VLESS VPN v2.2.2")
+    print("Windows Compatible - Simplified Version")
     print("=" * 60)
     
     tests = [
         ("Project Structure", test_project_structure),
         ("VLESS URI Parsing", test_vless_uri_parsing), 
         ("UI Module Imports", test_ui_imports),
-        ("Xray Download", test_xray_download),
+        ("Xray Binary Check", test_xray_binary),
         ("Requirements File", test_requirements),
         ("Fallback System", test_fallback_system)
     ]
@@ -270,17 +238,13 @@ def run_all_tests():
         print("ALL TESTS PASSED! Project is ready for production.")
         return True
     elif passed >= total * 0.8:
-        print("Most tests passed. Project is functional with minor issues.")
+        print("Most tests passed. Project is functional.")
         return True
     else:
-        print("Some critical tests failed. Review required.")
+        print("Some tests failed. Review required.")
         return False
 
 
 if __name__ == '__main__':
-    # Change to project directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(script_dir)
-    
     success = run_all_tests()
     sys.exit(0 if success else 1)

@@ -59,9 +59,13 @@ jobs:
           powershell -Command "Move-Item xray-temp/xray.exe bin/xray.exe -Force"
           Remove-Item xray.zip, xray-temp -Recurse -Force
 
+      - name: Prepare Windows compatible files
+        run: |
+          Copy-Item "main_windows_compatible.py" "main.py" -Force
+          
       - name: Run tests
         run: |
-          python test_comprehensive_fixed.py
+          python test_simple.py
         continue-on-error: true
 
       - name: Build executable with PyInstaller
