@@ -184,14 +184,14 @@ jobs:
           Compress-Archive -Path "release/*" -DestinationPath "Ultra-Modern-Browser-v4.0.0-Win11-Release.zip"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Ultra-Modern-Browser-v4.0.0-Windows11-Portable
           path: dist/Ultra-Modern-Browser-Portable-Win11.zip
           retention-days: 90
           
       - name: Upload release package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Ultra-Modern-Browser-v4.0.0-Full-Release
           path: Ultra-Modern-Browser-v4.0.0-Win11-Release.zip
