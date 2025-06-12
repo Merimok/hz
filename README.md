@@ -2,7 +2,7 @@
 
 This repository contains a minimal Python application that runs a webview-based browser and starts **Xray-core** with a VLESS inbound configuration. The browser routes its traffic through the local VLESS proxy.
 
-The project also includes a GitHub Actions workflow to build a standalone Windows executable using PyInstaller and bundle Xray-core.
+The project also includes a GitHub Actions workflow to build a standalone Windows executable using PyInstaller and bundle Xray-core. After PyInstaller finishes, `xray.exe` is copied next to `dist/main.exe` and both binaries are zipped into `release.zip` which is uploaded as the build artifact.
 
 ## Usage
 
