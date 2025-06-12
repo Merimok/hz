@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Comprehensive test suite for the Lightweight Browser with VLESS VPN
-Tests all components and fallback systems
+Tests all components and fallback systems - Windows compatible version
 """
 
 import os
@@ -13,7 +13,7 @@ import tempfile
 
 def test_project_structure():
     """Test that all required files exist."""
-    print("🔍 Testing project structure...")
+    print("Testing project structure...")
     
     required_files = [
         'main.py',
@@ -27,9 +27,9 @@ def test_project_structure():
     
     for file_path in required_files:
         if os.path.exists(file_path):
-            print(f"  ✅ {file_path}")
+            print(f"  [OK] {file_path}")
         else:
-            print(f"  ❌ {file_path} - MISSING")
+            print(f"  [FAIL] {file_path} - MISSING")
             return False
     
     return True
@@ -37,7 +37,7 @@ def test_project_structure():
 
 def test_vless_uri_parsing():
     """Test VLESS URI parsing functionality."""
-    print("\n🔍 Testing VLESS URI parsing...")
+    print("\nTesting VLESS URI parsing...")
     
     # Import the main module
     sys.path.append('.')
@@ -57,40 +57,40 @@ def test_vless_uri_parsing():
                 
             # Verify structure
             if 'inbounds' in config and 'outbounds' in config:
-                print("  ✅ Config structure valid")
+                print("  [OK] Config structure valid")
                 
                 # Check SOCKS inbound
                 socks_found = any(ib.get('protocol') == 'socks' for ib in config['inbounds'])
                 if socks_found:
-                    print("  ✅ SOCKS inbound configured")
+                    print("  [OK] SOCKS inbound configured")
                 else:
-                    print("  ❌ SOCKS inbound missing")
+                    print("  [FAIL] SOCKS inbound missing")
                     return False
                     
                 # Check VLESS outbound
                 vless_found = any(ob.get('protocol') == 'vless' for ob in config['outbounds'])
                 if vless_found:
-                    print("  ✅ VLESS outbound configured")
+                    print("  [OK] VLESS outbound configured")
                 else:
-                    print("  ❌ VLESS outbound missing")
+                    print("  [FAIL] VLESS outbound missing")
                     return False
                     
                 return True
             else:
-                print("  ❌ Invalid config structure")
+                print("  [FAIL] Invalid config structure")
                 return False
         else:
-            print("  ❌ config.json not created")
+            print("  [FAIL] config.json not created")
             return False
             
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"  [ERROR] {e}")
         return False
 
 
 def test_ui_imports():
     """Test that all UI modules can be imported."""
-    print("\n🔍 Testing UI module imports...")
+    print("\nTesting UI module imports...")
     
     ui_modules = [
         'src.ui_simple',      # Should always work (Tkinter)
@@ -104,25 +104,25 @@ def test_ui_imports():
     for module_name in ui_modules:
         try:
             __import__(module_name)
-            print(f"  ✅ {module_name}")
+            print(f"  [OK] {module_name}")
             success_count += 1
         except ImportError as e:
-            print(f"  ⚠️ {module_name} - {e}")
+            print(f"  [WARN] {module_name} - {e}")
         except Exception as e:
-            print(f"  ❌ {module_name} - {e}")
+            print(f"  [FAIL] {module_name} - {e}")
     
     # At least one UI should work
     if success_count > 0:
-        print(f"  ✅ {success_count}/{len(ui_modules)} UI modules available")
+        print(f"  [OK] {success_count}/{len(ui_modules)} UI modules available")
         return True
     else:
-        print("  ❌ No UI modules available")
+        print("  [FAIL] No UI modules available")
         return False
 
 
 def test_xray_download():
     """Test Xray binary download functionality."""
-    print("\n🔍 Testing Xray download...")
+    print("\nTesting Xray download...")
     
     try:
         sys.path.append('.')
@@ -139,10 +139,10 @@ def test_xray_download():
         result = main.ensure_xray()
         
         if result and os.path.exists(result):
-            print("  ✅ Xray download successful")
+            print("  [OK] Xray download successful")
             success = True
         else:
-            print("  ❌ Xray download failed")
+            print("  [FAIL] Xray download failed")
             success = False
             
         # Restore backup if exists
@@ -154,36 +154,36 @@ def test_xray_download():
         return success
         
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"  [ERROR] {e}")
         return False
 
 
 def test_requirements():
     """Test requirements.txt content."""
-    print("\n🔍 Testing requirements.txt...")
+    print("\nTesting requirements.txt...")
     
     try:
         with open('requirements.txt', 'r') as f:
             content = f.read()
             
         if 'pywebview' in content:
-            print("  ✅ pywebview dependency listed")
+            print("  [OK] pywebview dependency listed")
             return True
         else:
-            print("  ❌ pywebview dependency missing")
+            print("  [FAIL] pywebview dependency missing")
             return False
             
     except FileNotFoundError:
-        print("  ❌ requirements.txt not found")
+        print("  [FAIL] requirements.txt not found")
         return False
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"  [ERROR] {e}")
         return False
 
 
 def test_fallback_system():
     """Test the fallback system in main.py."""
-    print("\n🔍 Testing fallback system...")
+    print("\nTesting fallback system...")
     
     try:
         # Read main.py content
@@ -202,17 +202,17 @@ def test_fallback_system():
         for fallback in fallbacks:
             if fallback in content:
                 found_fallbacks += 1
-                print(f"  ✅ {fallback} fallback present")
+                print(f"  [OK] {fallback} fallback present")
         
         if found_fallbacks >= 3:
-            print("  ✅ Fallback system comprehensive")
+            print("  [OK] Fallback system comprehensive")
             return True
         else:
-            print(f"  ⚠️ Only {found_fallbacks} fallbacks found")
+            print(f"  [WARN] Only {found_fallbacks} fallbacks found")
             return False
             
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"  [ERROR] {e}")
         return False
 
 
@@ -240,9 +240,9 @@ def run_all_tests():
             if test_func():
                 passed += 1
             else:
-                print(f"\n❌ {test_name} FAILED")
+                print(f"\n[FAIL] {test_name} FAILED")
         except Exception as e:
-            print(f"\n💥 {test_name} CRASHED: {e}")
+            print(f"\n[CRASH] {test_name} CRASHED: {e}")
     
     print("\n" + "=" * 60)
     print("TEST RESULTS")
