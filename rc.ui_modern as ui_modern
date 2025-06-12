@@ -1,0 +1,27 @@
+Help on function start in module webview:
+
+ssttaarrtt(func: 'Callable[..., None] | None' = None, args: 'Iterable[Any] | None' = None, localization: 'dict[str, str]' = {}, gui: 'GUIType | None' = None, debug: 'bool' = False, http_server: 'bool' = False, http_port: 'int | None' = None, user_agent: 'str | None' = None, private_mode: 'bool' = True, storage_path: 'str | None' = None, menu: 'list[Menu]' = [], server: 'type[http.ServerType]' = <class 'webview.http.BottleServer'>, server_args: 'dict[Any, Any]' = {}, ssl: 'bool' = False, icon: 'str | None' = None)
+    Start a GUI loop and display previously created windows. This function must
+    be called from a main thread.
+
+    :param func: Function to invoke upon starting the GUI loop.
+    :param args: Function arguments. Can be either a single value or a tuple of
+        values.
+    :param localization: A dictionary with localized strings. Default strings
+        and their keys are defined in localization.py.
+    :param gui: Force a specific GUI. Allowed values are ``cef``, ``qt``,
+        ``gtk``, ``mshtml`` or ``edgechromium`` depending on a platform.
+    :param debug: Enable debug mode. Default is False.
+    :param http_server: Enable built-in HTTP server. If enabled, local files
+        will be served using a local HTTP server on a random port. For each
+        window, a separate HTTP server is spawned. This option is ignored for
+        non-local URLs.
+    :param user_agent: Change user agent string.
+    :param private_mode: Enable private mode. In private mode, cookies and local storage are not preserved.
+           Default is True.
+    :param storage_path: Custom location for cookies and other website data
+    :param menu: List of menus to be included in the app menu
+    :param server: Server class. Defaults to BottleServer
+    :param server_args: Dictionary of arguments to pass through to the server instantiation
+    :param ssl: Enable SSL for local HTTP server. Default is False.
+    :param icon: Path to the icon file. Supported only on GTK/QT.

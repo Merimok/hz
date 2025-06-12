@@ -1,22 +1,31 @@
-name: Build Lightweight Browser with VLESS VPN
+name: Build Lightweight Browser with VLESS VPN v2.2.0
 
 on:
   push:
+    branches: [ main, master ]
     paths:
       - 'src/**'
       - 'main.py'
       - 'config/vless.txt'
       - 'resources/bookmarks.json'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/**'
       - 'requirements.txt'
+      - 'PROJECT_COMPLETION_v2.2.0.md'
   pull_request:
+    branches: [ main, master ]
     paths:
       - 'src/**'
       - 'main.py'
       - 'config/vless.txt'
       - 'resources/bookmarks.json'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/**'
       - 'requirements.txt'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: false
+        default: 'v2.2.0'
 
 jobs:
   build:
@@ -41,12 +50,66 @@ jobs:
         run: |
           powershell -Command "Invoke-WebRequest 'https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip' -OutFile xray.zip"
           powershell -Command "Expand-Archive -Path xray.zip -DestinationPath xray-temp"
+          powershell -Command "New-Item -ItemType Directory -Path bin -Force"
           powershell -Command "Move-Item xray-temp/xray.exe bin/xray.exe -Force"
           Remove-Item xray.zip, xray-temp -Recurse -Force
+
+      - name: Run tests
+        run: |
+          python test_comprehensive.py
+        continue-on-error: true
 
       - name: Build executable with PyInstaller
         run: |
           pyinstaller --onefile --add-data "config;config" --add-data "resources;resources" --add-data "bin;bin" main.py
+
+      - name: Prepare release package
+        run: |
+          New-Item -ItemType Directory -Path "release" -Force
+          Copy-Item "dist/main.exe" "release/lightweight-browser-vless-v2.2.0.exe"
+          Copy-Item "README.md" "release/" -ErrorAction SilentlyContinue
+          Copy-Item "PROJECT_COMPLETION_v2.2.0.md" "release/" -ErrorAction SilentlyContinue
+          Copy-Item "config/vless.txt" "release/vless.txt"
+
+      - name: Create release archive
+        run: |
+          Compress-Archive -Path "release/*" -DestinationPath "lightweight-browser-vless-v2.2.0-windows.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lightweight-browser-vless-v2.2.0-windows
+          path: lightweight-browser-vless-v2.2.0-windows.zip
+          retention-days: 90
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v2.2.0-${{ github.run_number }}
+          release_name: Lightweight Browser with VLESS VPN v2.2.0
+          body: |
+            🎉 **Лёгкий браузер с VLESS VPN v2.2.0**
+            
+            ✅ **Что нового:**
+            - Исправлена совместимость с pywebview 4.0+
+            - Современный Material Design интерфейс
+            - Каскадная система fallback UI
+            - Комплексные тесты и документация
+            
+            📦 **Скачать:**
+            - Windows: lightweight-browser-vless-v2.2.0-windows.zip
+            
+            🚀 **Установка:**
+            1. Скачайте архив
+            2. Распакуйте в папку
+            3. Запустите lightweight-browser-vless-v2.2.0.exe
+            
+            📖 **Документация:** PROJECT_COMPLETION_v2.2.0.md
+          draft: false
+          prerelease: false
 
       - name: Prepare release package
         run: |

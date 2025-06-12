@@ -215,13 +215,30 @@ def main():
     # Запуск браузера с современным интерфейсом
     print("Запуск браузера...")
     try:
-        # Пробуем использовать новый интерфейс
-        import src.ui_modern as ui_modern
-        ui_modern.start()
-    except ImportError:
-        # Fallback на старый интерфейс
-        import src.ui as ui
-        ui.start()
+        # Пробуем использовать исправленный интерфейс
+        import src.ui_modern_fixed as ui_modern_fixed
+        ui_modern_fixed.start()
+    except Exception as e:
+        print(f"Ошибка запуска современного интерфейса: {e}")
+        try:
+            # Fallback на новый интерфейс
+            import src.ui_modern as ui_modern
+            ui_modern.start()
+        except Exception as e:
+            print(f"Ошибка запуска модернизированного интерфейса: {e}")
+            try:
+                # Fallback на старый интерфейс
+                import src.ui as ui
+                ui.start()
+            except Exception as e:
+                print(f"Ошибка запуска базового интерфейса: {e}")
+                try:
+                    # Последний fallback - простой интерфейс
+                    import src.ui_simple as ui_simple
+                    ui_simple.start()
+                except Exception as e:
+                    print(f"Критическая ошибка: не удалось запустить ни один интерфейс: {e}")
+                    print("Проверьте установку зависимостей: pip install pywebview>=4.0.0")
 
 
 if __name__ == '__main__':

@@ -1,47 +1,91 @@
-# Lightweight Browser with VLESS VPN
+# 🌐 Лёгкий браузер с VLESS VPN v2.2.0
 
+![Status](https://img.shields.io/badge/Status-Production%20Ready-green)
+![Version](https://img.shields.io/badge/Version-v2.2.0-blue)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)
 
-This project provides a minimal Python browser that routes traffic through
-**Xray-core** configured with the VLESS protocol.  The repository contains a set
-of placeholder files so you can easily replace them with your own settings.
+Легкий браузер с встроенной поддержкой VLESS VPN через Xray-core. Современный интерфейс с Material Design и автоматической настройкой VPN подключения.
 
+## ✨ Особенности
+
+- 🔐 **VLESS + Reality VPN** - Безопасное подключение через Xray-core
+- 🎨 **Современный UI** - Material Design с градиентными эффектами  
+- 🔄 **Fallback система** - 4 уровня резервных интерфейсов
+- ⚡ **Автонастройка** - Автоматическая загрузка и настройка Xray
+- 🌍 **Навигация** - Полнофункциональный браузер с закладками
+- 🛡️ **Надежность** - Комплексная обработка ошибок
+
+## 🚀 Быстрый старт
+
+### Windows (Готовый исполняемый файл)
+1. Скачайте `lightweight-browser-vless-v2.2.0-windows.zip` из [Releases](../../releases)
+2. Распакуйте архив
+3. Запустите `lightweight-browser-vless-v2.2.0.exe`
+
+### Из исходного кода
+```bash
+# Клонируйте репозиторий
+git clone <repository-url>
+cd hz
+
+# Установите зависимости
+pip install -r requirements.txt
+
+# Запустите браузер
+python main.py
 ```
-project_root/
-├─ src/               # Python sources
-│   ├─ main.py        # Generates config.json and starts Xray + UI
-│   └─ ui.py          # Simple browser interface
-├─ config/
-│   └─ vless.txt      # Default VLESS URI
-├─ resources/
-│   └─ bookmarks.json # Sample bookmarks
-├─ bin/
-│   └─ xray.exe       # Placeholder for Xray-core (Windows)
-└─ .github/workflows/build.yml
+
+## ⚙️ Конфигурация
+
+### VLESS URI
+Поместите ваш VLESS URI в файл `config/vless.txt`:
+```
+vless://user@server:port?encryption=none&security=reality&sni=domain.com&...
 ```
 
-The GitHub Actions workflow builds a Windows executable with PyInstaller and
-includes Xray-core. The resulting `lightweight-browser-vless` artifact contains
-`main.exe` together with `vless.txt` so the released binary ships with the
-sample configuration. You can download the artifact from the workflow run.
+### Закладки
+Настройте закладки в `resources/bookmarks.json`:
+```json
+[
+  {"name": "YouTube", "url": "https://www.youtube.com"},
+  {"name": "2IP", "url": "https://2ip.ru"}
+]
+```
 
-## Usage
+## 🧪 Тестирование
 
-1. Put a real **xray.exe** into the `bin/` directory (or let the workflow
-   download it during CI).
-2. Edit `config/vless.txt` if you need a different VLESS URI.
-3. Run `python src/main.py` to launch the browser.
+```bash
+# Полный тест проекта
+python test_comprehensive.py
 
-`src/main.py` will generate `config/config.json` automatically and start
-Xray-core in the background.
-=======
-This repository contains a minimal Python application that runs a webview-based browser and starts **Xray-core** with a VLESS inbound configuration. The browser routes its traffic through the local VLESS proxy.
+# Тест pywebview совместимости  
+python test_webview.py
+```
 
-The project also includes a GitHub Actions workflow to build a standalone Windows executable using PyInstaller and bundle Xray-core. After PyInstaller finishes, `xray.exe` is copied next to `dist/main.exe` and both binaries are zipped into `release.zip` which is uploaded as the build artifact.
+## 🔒 Безопасность
 
-## Usage
+- **VLESS + Reality** - Современное шифрование трафика
+- **Local SOCKS Proxy** - Весь трафик через локальный прокси
+- **No Data Collection** - Никаких логов пользовательской активности
+- **Open Source** - Полностью открытый исходный код
 
-1. Provide a VLESS URI via the `VLESS_URI` environment variable or in `vless.txt`.
-2. Run `python main.py` to launch the browser with the proxy.
+## 🐛 Устранение неполадок
 
-The configuration is generated automatically in `config.json` before starting Xray-core.
+### Браузер не запускается
+```bash
+# Проверьте зависимости
+pip install pywebview>=4.0.0
+
+# Запустите с отладкой
+python main.py
+```
+
+### VLESS не подключается
+1. Проверьте URI в `config/vless.txt`
+2. Убедитесь что сервер доступен
+3. Проверьте логи Xray в консоли
+
+---
+
+**Made with ❤️ for secure and private browsing**
 

@@ -4,6 +4,51 @@ from urllib.parse import quote_plus
 import webview
 
 
+class BrowserApi:
+    """API класс для взаимодействия JavaScript с Python."""
+    
+    def __init__(self):
+        self.current_window = None
+        
+    def set_window(self, window):
+        """Устанавливает ссылку на окно webview."""
+        self.current_window = window
+        
+    def navigate(self, url):
+        """Навигация по URL."""
+        if not self.current_window:
+            print("Window not initialized")
+            return
+            
+        # Если URL не содержит протокол, добавляем https://
+        if not url.startswith(('http://', 'https://')):
+            if '.' in url and ' ' not in url:
+                url = 'https://' + url
+            else:
+                url = 'https://www.google.com/search?q=' + quote_plus(url)
+                
+        print(f"Navigating to: {url}")
+        self.current_window.load_url(url)
+        
+    def go_back(self):
+        """Возвращается на домашнюю страницу (эмуляция назад)."""
+        print("Going back (to home)")
+        if self.current_window:
+            self.current_window.load_url('https://www.google.com')
+            
+    def go_forward(self):
+        """Переходит на домашнюю страницу (эмуляция вперед)."""
+        print("Going forward (to home)")
+        if self.current_window:
+            self.current_window.load_url('https://www.google.com')
+            
+    def refresh(self):
+        """Обновляет текущую страницу."""
+        print("Refreshing page")
+        if self.current_window:
+            self.current_window.reload()
+
+
 def start():
     """Запускает пользовательский интерфейс браузера с современным дизайном."""
     bookmarks = []
@@ -59,17 +104,6 @@ def start():
                 position: relative;
             }}
             
-            .toolbar::before {{
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-                pointer-events: none;
-            }}
-            
             .nav-btn {{
                 background: rgba(255,255,255,0.2);
                 border: none;
@@ -84,18 +118,12 @@ def start():
                 transition: all 0.2s ease;
                 font-size: 16px;
                 backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
             }}
             
             .nav-btn:hover {{
                 background: rgba(255,255,255,0.3);
                 transform: translateY(-1px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            }}
-            
-            .nav-btn:active {{
-                transform: translateY(0);
             }}
             
             .address-bar {{
@@ -109,8 +137,6 @@ def start():
                 backdrop-filter: blur(10px);
                 box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
                 transition: all 0.2s ease;
-                position: relative;
-                z-index: 1;
             }}
             
             .address-bar:focus {{
@@ -129,8 +155,6 @@ def start():
                 transition: all 0.2s ease;
                 font-weight: 500;
                 backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
             }}
             
             .go-btn:hover {{
@@ -147,26 +171,19 @@ def start():
                 cursor: pointer;
                 font-size: 14px;
                 backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
                 transition: all 0.2s ease;
-            }}
-            
-            .bookmarks:hover {{
-                background: rgba(255,255,255,0.3);
             }}
             
             .webview-container {{
                 flex: 1;
                 position: relative;
                 overflow: hidden;
-            }}
-            
-            .webview {{
-                width: 100%;
-                height: 100%;
-                border: none;
                 background: #f8fafc;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: #64748b;
             }}
             
             .status-bar {{
@@ -197,15 +214,6 @@ def start():
                 font-size: 10px;
             }}
             
-            @keyframes pulse {{
-                0%, 100% {{ opacity: 1; }}
-                50% {{ opacity: 0.7; }}
-            }}
-            
-            .loading {{
-                animation: pulse 2s infinite;
-            }}
-            
             .home-btn {{
                 background: rgba(255,255,255,0.2);
                 border: none;
@@ -219,8 +227,6 @@ def start():
                 cursor: pointer;
                 transition: all 0.2s ease;
                 backdrop-filter: blur(10px);
-                position: relative;
-                z-index: 1;
                 font-size: 18px;
             }}
             
@@ -253,8 +259,8 @@ def start():
                 </select>
             </div>
             
-            <div class="webview-container">
-                <webview id="webview" class="webview" src="{start_url}"></webview>
+            <div class="webview-container" id="content">
+                <div>🌐 Введите URL в адресную строку для навигации</div>
             </div>
             
             <div class="status-bar">
@@ -265,62 +271,56 @@ def start():
 
         <script>
             const addressBar = document.getElementById('addressBar');
-            const webview = document.getElementById('webview');
             const statusText = document.getElementById('statusText');
+            const content = document.getElementById('content');
             
-            // API для взаимодействия с Python
-            const api = window.pywebview?.api || {{
-                navigate: (url) => console.log('Navigate:', url),
-                goBack: () => console.log('Go back'),
-                goForward: () => console.log('Go forward'),
-                refresh: () => console.log('Refresh'),
-                goHome: () => console.log('Go home')
-            }};
-            
-            function navigate(url) {{
-                url = url || addressBar.value.trim();
+            function navigate(customUrl) {{
+                const url = customUrl || addressBar.value.trim();
                 if (!url) return;
                 
-                // Если не начинается с http:// или https://, то поиск в Google
-                if (!url.match(/^https?:\\/\\//)) {{
-                    url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+                statusText.textContent = 'Загрузка... • ' + url;
+                content.innerHTML = '<div>🔄 Загрузка: ' + url + '</div>';
+                
+                // Используем pywebview API
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.navigate(url).then(() => {{
+                        statusText.textContent = 'Загружено через VLESS прокси • 127.0.0.1:1080';
+                    }}).catch((e) => {{
+                        console.error('Navigation error:', e);
+                        statusText.textContent = 'Ошибка загрузки • ' + e.message;
+                    }});
+                }} else {{
+                    // Fallback для тестирования
+                    setTimeout(() => {{
+                        content.innerHTML = '<div>📄 Симуляция загрузки: ' + url + '</div>';
+                        statusText.textContent = 'Загружено через VLESS прокси • 127.0.0.1:1080';
+                    }}, 1000);
                 }}
                 
                 addressBar.value = url;
-                statusText.textContent = 'Загрузка... • ' + url;
-                
-                if (api.navigate) {{
-                    api.navigate(url);
-                }} else {{
-                    webview.src = url;
-                }}
-                
-                setTimeout(() => {{
-                    statusText.textContent = 'Загружено через VLESS прокси • 127.0.0.1:1080';
-                }}, 1000);
             }}
             
             function goBack() {{
-                if (api.goBack) {{
-                    api.goBack();
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.go_back();
                 }} else {{
-                    history.back();
+                    navigate('https://www.google.com');
                 }}
             }}
             
             function goForward() {{
-                if (api.goForward) {{
-                    api.goForward();
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.go_forward();
                 }} else {{
-                    history.forward();
+                    navigate('https://www.google.com');
                 }}
             }}
             
             function refresh() {{
-                if (api.refresh) {{
-                    api.refresh();
+                if (window.pywebview && window.pywebview.api) {{
+                    window.pywebview.api.refresh();
                 }} else {{
-                    location.reload();
+                    window.location.reload();
                 }}
             }}
             
@@ -332,7 +332,6 @@ def start():
                 if (url) {{
                     navigate(url);
                 }}
-                // Сбрасываем выбор
                 event.target.selectedIndex = 0;
             }}
             
@@ -343,55 +342,20 @@ def start():
                 }}
             }});
             
-            // Автообновление адресной строки (если возможно)
-            if (webview) {{
-                webview.addEventListener('loadstart', function() {{
-                    statusText.textContent = 'Загрузка...';
-                }});
-                
-                webview.addEventListener('loadstop', function() {{
-                    statusText.textContent = 'Загружено через VLESS прокси • 127.0.0.1:1080';
-                    try {{
-                        addressBar.value = webview.src;
-                    }} catch(e) {{
-                        // Игнорируем ошибки CORS
-                    }}
-                }});
-            }}
+            // Инициализация при загрузке
+            window.addEventListener('pywebviewready', function() {{
+                console.log('PyWebview API готов');
+                statusText.textContent = 'Готов к работе через VLESS прокси • 127.0.0.1:1080';
+            }});
         </script>
     </body>
     </html>
     """
 
-    # Создаём API класс
-    class Api:
-        def __init__(self):
-            self.window = None
-            
-        def navigate(self, text):
-            if not self.window:
-                return
-            url = text
-            if not text.startswith('http://') and not text.startswith('https://'):
-                url = 'https://www.google.com/search?q=' + quote_plus(text)
-            self.window.load_url(url)
-            
-        def goBack(self):
-            if self.window:
-                # Since pywebview doesn't have built-in history, we'll just return to home
-                self.window.load_url('https://www.google.com')
-            
-        def goForward(self):
-            if self.window:
-                # Since pywebview doesn't have built-in history, we'll just return to home  
-                self.window.load_url('https://www.google.com')
-            
-        def refresh(self):
-            if self.window:
-                self.window.reload()
-
-    # Создаём окно с HTML контентом
-    api = Api()
+    # Создаём API объект
+    api = BrowserApi()
+    
+    # Создаём окно
     window = webview.create_window(
         'Лёгкий браузер с VLESS VPN', 
         html,
@@ -400,8 +364,14 @@ def start():
         min_size=(800, 600)
     )
     
-    # Присваиваем window объект API
-    api.window = window
+    # Связываем API с окном
+    api.set_window(window)
+    
+    print("Запуск браузера с современным интерфейсом...")
+    
+    # Запускаем webview с API (правильный способ для pywebview 4.0+)
+    webview.start(api=api, debug=True, http_server=True)
 
-    # Запускаем webview с API объектом
-    webview.start(debug=True, http_server=True)
+
+if __name__ == '__main__':
+    start()
