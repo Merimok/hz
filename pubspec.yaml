@@ -24,7 +24,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  # Enable Windows desktop support
-  platforms:
-    windows:
