@@ -12,7 +12,7 @@ set(PLUGIN_BUNDLED_LIBRARIES)
 
 foreach(plugin ${FLUTTER_PLUGIN_LIST})
   # Try multiple paths for plugin directories
-  set(plugin_found FALSE)
+  unset(found_path)
   
   # Path 1: From runner directory (GitHub Actions context)
   set(plugin_path_1 "${CMAKE_CURRENT_SOURCE_DIR}/../flutter/ephemeral/.plugin_symlinks/${plugin}/windows")
@@ -22,20 +22,18 @@ foreach(plugin ${FLUTTER_PLUGIN_LIST})
   set(plugin_path_3 "${CMAKE_CURRENT_SOURCE_DIR}/ephemeral/.plugin_symlinks/${plugin}/windows")
   
   if(EXISTS "${plugin_path_1}")
-    add_subdirectory("${plugin_path_1}" plugins/${plugin})
-    set(plugin_found TRUE)
-    message(STATUS "Found plugin ${plugin} at: ${plugin_path_1}")
+    set(found_path "${plugin_path_1}")
   elseif(EXISTS "${plugin_path_2}")
-    add_subdirectory("${plugin_path_2}" plugins/${plugin})
-    set(plugin_found TRUE)
-    message(STATUS "Found plugin ${plugin} at: ${plugin_path_2}")
+    set(found_path "${plugin_path_2}")
   elseif(EXISTS "${plugin_path_3}")
-    add_subdirectory("${plugin_path_3}" plugins/${plugin})
-    set(plugin_found TRUE)
-    message(STATUS "Found plugin ${plugin} at: ${plugin_path_3}")
+    set(found_path "${plugin_path_3}")
   endif()
-  
-  if(plugin_found)
+
+  if(DEFINED found_path)
+    if(NOT TARGET ${plugin}_plugin)
+      add_subdirectory("${found_path}" plugins/${plugin})
+      message(STATUS "Found plugin ${plugin} at: ${found_path}")
+    endif()
     target_link_libraries(${BINARY_NAME} PRIVATE ${plugin}_plugin)
     list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:${plugin}_plugin>)
     # Only add bundled libraries if they exist and are not empty

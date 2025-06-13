@@ -41,7 +41,11 @@ set_target_properties(${BINARY_NAME}
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
-include(../flutter/generated_plugins.cmake)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../flutter/generated_plugins_fixed.cmake")
+  include(../flutter/generated_plugins_fixed.cmake)
+else()
+  include(../flutter/generated_plugins.cmake)
+endif()
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can

@@ -1,39 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:webview_windows/webview_windows.dart';
-impor  Future<void> _initializeWebView() async {
-    try {
-      AppLogger.info(constants.logWebViewInitialization); // Use constant
-      await _controller.initialize();
-      
-      // Set up ad blocking na        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // VPN Status and Toggle
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${constants.vpnStatusLabel} ${SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText}'), // Use constants
-                Switch(
-                  value: SingBoxManager.isRunning,
-                  onChanged: (value) async {
-                    Navigator.pop(context); // Close dialog first
-                    await _toggleVPN();
-                  },
-                  activeColor: constants.primaryMaterialColor,
-                ),
-              ],
-            ),
-            Text('${constants.singboxStatusLabel} ${SingBoxManager.isRunning ? constants.singboxRunningText : constants.singboxStoppedText}'), // Use constantson delegate
-      _controller.setNavigationDelegate((navigation) {
-        if (_shouldBlockUrl(navigation.url)) {
-          return NavigationDecision.prevent;
-        }
-        return NavigationDecision.navigate;
-      });
-      
-      // Set up webview callbackskage:http/http.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'logger.dart';
 import 'singbox_manager.dart';
@@ -57,20 +25,20 @@ class FocusBrowserApp extends StatelessWidget {
     return MaterialApp(
       title: constants.appTitle, // Use constant
       theme: ThemeData.dark().copyWith(
-        primarySwatch: constants.primaryMaterialColor,
-        scaffoldBackgroundColor: constants.scaffoldBackgroundColor,
-        appBarTheme: AppBarTheme(
-          backgroundColor: constants.appBarBackgroundColor,
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xFF1A1A1A),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF2D2D2D),
           elevation: 0,
         ),
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           filled: true,
-          fillColor: constants.inputFillColor,
-          border: const OutlineInputBorder(
+          fillColor: Color(0xFF3D3D3D),
+          border: OutlineInputBorder(
             borderSide: BorderSide.none,
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
       home: const BrowserPage(),
@@ -135,17 +103,6 @@ class _BrowserPageState extends State<BrowserPage> {
         _vpnConnected = false;
       });
     }
-  }
-
-  // Ad blocking function
-  bool _shouldBlockUrl(String url) {
-    for (final domain in constants.blockedDomains) {
-      if (url.contains(domain)) {
-        AppLogger.info('${constants.adBlockedMessage}: $url');
-        return true;
-      }
-    }
-    return false;
   }
 
   Future<void> _initializeWebView() async {
@@ -255,31 +212,8 @@ class _BrowserPageState extends State<BrowserPage> {
   Future<void> _clearDataAndRestart() async {
     AppLogger.info(constants.logClearingData); // Use constant
     try {
-      // Clear browser cache and cookies
       await _controller.clearCache();
       await _controller.clearCookies();
-      
-      // Clear localStorage, sessionStorage, and cookies via JavaScript
-      try {
-        await _controller.executeScript('''
-          // Clear localStorage
-          if (typeof(Storage) !== "undefined") {
-            localStorage.clear();
-            sessionStorage.clear();
-          }
-          
-          // Clear cookies via JavaScript
-          document.cookie.split(";").forEach(function(c) { 
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-          });
-          
-          console.log("🔥 Browser data cleared via JavaScript");
-        ''');
-      } catch (jsError) {
-        AppLogger.error('JavaScript cleanup failed', jsError);
-      }
-      
-      // Navigate to home page
       await _navigateToUrl(constants.defaultHomePageUrl); // Use constant
       
       AppLogger.info(constants.logDataCleared); // Use constant
@@ -295,37 +229,6 @@ class _BrowserPageState extends State<BrowserPage> {
       }
     } catch (e) {
       AppLogger.error(constants.logFailedToClearData, e); // Use constant
-    }
-  }
-
-  Future<void> _toggleVPN() async {
-    try {
-      if (SingBoxManager.isRunning) {
-        await SingBoxManager.stopSingBox();
-        setState(() {
-          _vpnConnected = false;
-        });
-        AppLogger.info('VPN disconnected');
-      } else {
-        final success = await SingBoxManager.startSingBox();
-        setState(() {
-          _vpnConnected = success;
-        });
-        if (success) {
-          AppLogger.info('VPN connected successfully');
-          // Test connection after a short delay
-          await Future.delayed(constants.vpnTestDelayDuration);
-          final connectionTest = await SingBoxManager.testConnection();
-          AppLogger.info('${constants.logVpnConnectionTestResult} ${connectionTest ? 'PASSED' : 'FAILED'}');
-        } else {
-          AppLogger.error('Failed to connect VPN', null);
-        }
-      }
-    } catch (e) {
-      AppLogger.error('VPN toggle failed', e);
-      setState(() {
-        _vpnConnected = false;
-      });
     }
   }
 
@@ -488,33 +391,12 @@ class _BrowserPageState extends State<BrowserPage> {
               tooltip: constants.settingsButtonTooltip, // Use constant
             ),
             
-            // VPN toggle button
+            // VPN status
             Container(
               margin: const EdgeInsets.only(left: 8),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: _toggleVPN,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: SingBoxManager.isRunning ? constants.vpnConnectedColor : constants.vpnDisconnectedColor,
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText, // Use constants
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: SingBoxManager.isRunning ? constants.vpnConnectedColor : constants.vpnDisconnectedColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
+              child: Text(
+                SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText, // Use constants
+                style: const TextStyle(fontSize: 16),
               ),
             ),
           ],
