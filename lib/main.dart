@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:webview_windows/webview_windows.dart';
+import 'package:http/http.dart' as http;
+import 'dart:typed_data';
 
 void main() {
   runApp(const FocusBrowserApp());
@@ -46,16 +48,23 @@ class BrowserPage extends StatefulWidget {
 class _BrowserPageState extends State<BrowserPage> {
   final WebviewController _controller = WebviewController();
   final TextEditingController _urlController = TextEditingController();
+  final FocusNode _urlFocusNode = FocusNode();
+  final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   Process? _singBoxProcess;
-  bool _isLoading = false;
   bool _vpnConnected = false;
   String _currentUrl = 'https://www.perplexity.ai';
+  Uint8List? _favicon;
 
   @override
   void initState() {
     super.initState();
     _initializeVPN();
     _initializeWebView();
+    
+    // Auto-focus on address bar when app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _urlFocusNode.requestFocus();
+    });
   }
 
   Future<void> _initializeVPN() async {
@@ -73,7 +82,7 @@ class _BrowserPageState extends State<BrowserPage> {
           _vpnConnected = true;
         });
         
-        // Даем время на подключение VPN
+        // Give VPN time to connect
         await Future.delayed(const Duration(seconds: 2));
       }
     } catch (e) {
@@ -83,14 +92,53 @@ class _BrowserPageState extends State<BrowserPage> {
 
   Future<void> _initializeWebView() async {
     await _controller.initialize();
+    
+    // Set up navigation delegate
+    _controller.navigationDelegate = NavigationDelegate(
+      onNavigationStart: (url) {
+        _isLoading.value = true;
+        _updateCurrentUrl(url);
+        _fetchFavicon(url);
+        return NavigationDecision.navigate;
+      },
+      onPageFinished: (url) {
+        _isLoading.value = false;
+        _updateCurrentUrl(url);
+      },
+    );
+    
     _urlController.text = _currentUrl;
     await _controller.loadUrl(_currentUrl);
   }
 
-  Future<void> _navigateToUrl(String url) async {
+  void _updateCurrentUrl(String url) {
     setState(() {
-      _isLoading = true;
+      _currentUrl = url;
+      _urlController.text = url;
     });
+  }
+
+  Future<void> _fetchFavicon(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final faviconUrl = '${uri.scheme}://${uri.host}/favicon.ico';
+      
+      final response = await http.get(Uri.parse(faviconUrl));
+      if (response.statusCode == 200) {
+        setState(() {
+          _favicon = response.bodyBytes;
+        });
+      }
+    } catch (e) {
+      // Favicon fetch failed, use default icon
+      setState(() {
+        _favicon = null;
+      });
+    }
+  }
+
+  Future<void> _navigateToUrl(String url) async {
+    _isLoading.value = true;
     
     String finalUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -105,9 +153,8 @@ class _BrowserPageState extends State<BrowserPage> {
     _currentUrl = finalUrl;
     await _controller.loadUrl(finalUrl);
     
-    setState(() {
-      _isLoading = false;
-    });
+    // Remove focus from address bar after navigation
+    _urlFocusNode.unfocus();
   }
 
   Future<void> _clearDataAndRestart() async {
@@ -136,8 +183,14 @@ class _BrowserPageState extends State<BrowserPage> {
           children: [
             Text('VPN Status: ${_vpnConnected ? "🟢 Connected" : "🔴 Disconnected"}'),
             const SizedBox(height: 16),
-            const Text('Focus Browser v1.0.0'),
+            const Text('Focus Browser v1.0.2'),
             const Text('Minimalist browser with VPN support'),
+            const SizedBox(height: 16),
+            const Text('Features:'),
+            const Text('• Loading indicators'),
+            const Text('• Favicon support'),
+            const Text('• Auto-focus address bar'),
+            const Text('• sing-box VPN integration'),
           ],
         ),
         actions: [
@@ -153,6 +206,8 @@ class _BrowserPageState extends State<BrowserPage> {
   @override
   void dispose() {
     _controller.dispose();
+    _urlFocusNode.dispose();
+    _isLoading.dispose();
     _singBoxProcess?.kill();
     super.dispose();
   }
@@ -184,28 +239,63 @@ class _BrowserPageState extends State<BrowserPage> {
             Expanded(
               child: Container(
                 height: 40,
-                child: TextField(
-                  controller: _urlController,
-                  onSubmitted: _navigateToUrl,
-                  decoration: InputDecoration(
-                    hintText: 'Search or enter URL...',
-                    prefixIcon: _isLoading 
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Padding(
-                              padding: EdgeInsets.all(12),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          )
-                        : const Icon(Icons.search, size: 20),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: _isLoading,
+                  builder: (context, isLoading, child) {
+                    return TextField(
+                      controller: _urlController,
+                      focusNode: _urlFocusNode,
+                      onSubmitted: _navigateToUrl,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Search or enter URL...',
+                        prefixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(width: 12),
+                            if (isLoading)
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            else if (_favicon != null)
+                              Image.memory(
+                                _favicon!,
+                                width: 16,
+                                height: 16,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.web, size: 16);
+                                },
+                              )
+                            else
+                              const Icon(Icons.web, size: 16),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
             
             const SizedBox(width: 8),
+            
+            // Refresh button
+            ValueListenableBuilder<bool>(
+              valueListenable: _isLoading,
+              builder: (context, isLoading, child) {
+                return IconButton(
+                  onPressed: isLoading ? null : () => _controller.reload(),
+                  icon: isLoading 
+                      ? const Icon(Icons.stop, size: 20)
+                      : const Icon(Icons.refresh, size: 20),
+                  tooltip: isLoading ? 'Stop' : 'Refresh',
+                );
+              },
+            ),
             
             // Clear data button
             IconButton(
