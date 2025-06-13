@@ -3,7 +3,7 @@ description: A minimalist dark browser with sing-box VPN support
 
 publish_to: 'none'
 
-version: 1.0.2+1
+version: 1.0.3+1
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
@@ -11,11 +11,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_windows: ^0.3.2
-  cupertino_icons: ^1.0.2
-  process: ^5.0.0
-  path: ^1.8.3
-  http: ^1.1.0
+  webview_windows: ^0.4.0
+  cupertino_icons: ^1.0.8
+  process: ^5.0.2
+  path: ^1.9.0
+  http: ^1.2.0
+  logging: ^1.2.0
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:

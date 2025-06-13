@@ -1,7 +1,8 @@
 {
   "log": {
     "level": "info",
-    "timestamp": true
+    "timestamp": true,
+    "output": "logs/sing-box.log"
   },
   "inbounds": [
     {
@@ -25,6 +26,10 @@
           "enabled": true,
           "public_key": "EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc",
           "short_id": "68c55e5189f67c90"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "random"
         }
       },
       "transport": {
@@ -49,6 +54,16 @@
         "outbound": "direct"
       },
       {
+        "geoip": [
+          "cn"
+        ],
+        "outbound": "direct"
+      }
+    ],
+    "final": "proxy",
+    "auto_detect_interface": true
+  }
+}
         "geosite": [
           "category-ads-all"
         ],

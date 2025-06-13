@@ -3,8 +3,16 @@ import 'dart:io';
 import 'package:webview_windows/webview_windows.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
+import 'logger.dart';
+import 'singbox_manager.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Инициализируем логгер
+  await AppLogger.initialize();
+  AppLogger.info('=== Focus Browser v1.0.3 Starting ===');
+  
   runApp(const FocusBrowserApp());
 }
 
@@ -50,7 +58,6 @@ class _BrowserPageState extends State<BrowserPage> {
   final TextEditingController _urlController = TextEditingController();
   final FocusNode _urlFocusNode = FocusNode();
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
-  Process? _singBoxProcess;
   bool _vpnConnected = false;
   String _currentUrl = 'https://www.perplexity.ai';
   Uint8List? _favicon;
@@ -58,6 +65,7 @@ class _BrowserPageState extends State<BrowserPage> {
   @override
   void initState() {
     super.initState();
+    AppLogger.info('Initializing Focus Browser');
     _initializeVPN();
     _initializeWebView();
     
@@ -69,46 +77,58 @@ class _BrowserPageState extends State<BrowserPage> {
 
   Future<void> _initializeVPN() async {
     try {
-      final singBoxPath = '${Directory.current.path}/sing-box/sing-box.exe';
-      final configPath = '${Directory.current.path}/sing-box/config.json';
+      AppLogger.info('Starting VPN initialization...');
       
-      if (await File(singBoxPath).exists() && await File(configPath).exists()) {
-        _singBoxProcess = await Process.start(
-          singBoxPath,
-          ['run', '-c', configPath],
-        );
+      // Запускаем sing-box
+      final success = await SingBoxManager.startSingBox();
+      
+      setState(() {
+        _vpnConnected = success;
+      });
+      
+      if (success) {
+        AppLogger.logVpnConnection(true, '94.131.110.172', 23209);
         
-        setState(() {
-          _vpnConnected = true;
-        });
-        
-        // Give VPN time to connect
+        // Тестируем соединение
         await Future.delayed(const Duration(seconds: 2));
+        final connectionTest = await SingBoxManager.testConnection();
+        AppLogger.info('VPN connection test: ${connectionTest ? 'PASSED' : 'FAILED'}');
+      } else {
+        AppLogger.logVpnConnection(false, '94.131.110.172', 23209);
       }
     } catch (e) {
-      print('VPN initialization error: $e');
+      AppLogger.error('VPN initialization error', e);
+      setState(() {
+        _vpnConnected = false;
+      });
     }
   }
 
   Future<void> _initializeWebView() async {
-    await _controller.initialize();
-    
-    // Set up navigation delegate
-    _controller.navigationDelegate = NavigationDelegate(
-      onNavigationStart: (url) {
-        _isLoading.value = true;
-        _updateCurrentUrl(url);
-        _fetchFavicon(url);
-        return NavigationDecision.navigate;
-      },
-      onPageFinished: (url) {
-        _isLoading.value = false;
-        _updateCurrentUrl(url);
-      },
-    );
-    
-    _urlController.text = _currentUrl;
-    await _controller.loadUrl(_currentUrl);
+    try {
+      AppLogger.info('Initializing WebView...');
+      await _controller.initialize();
+      
+      // Set up webview callbacks
+      _controller.loadingState.listen((state) {
+        _isLoading.value = state == LoadingState.loading;
+        AppLogger.info('WebView loading state: $state');
+      });
+      
+      _controller.url.listen((url) {
+        if (url.isNotEmpty) {
+          _updateCurrentUrl(url);
+          _fetchFavicon(url);
+          AppLogger.logNavigation(url, true);
+        }
+      });
+      
+      _urlController.text = _currentUrl;
+      await _controller.loadUrl(_currentUrl);
+      AppLogger.info('WebView initialized successfully');
+    } catch (e) {
+      AppLogger.error('WebView initialization failed', e);
+    }
   }
 
   void _updateCurrentUrl(String url) {
@@ -138,6 +158,7 @@ class _BrowserPageState extends State<BrowserPage> {
   }
 
   Future<void> _navigateToUrl(String url) async {
+    AppLogger.info('Navigating to: $url');
     _isLoading.value = true;
     
     String finalUrl = url;
@@ -151,27 +172,44 @@ class _BrowserPageState extends State<BrowserPage> {
     
     _urlController.text = finalUrl;
     _currentUrl = finalUrl;
-    await _controller.loadUrl(finalUrl);
+    
+    try {
+      await _controller.loadUrl(finalUrl);
+      AppLogger.logNavigation(finalUrl, true);
+    } catch (e) {
+      AppLogger.error('Navigation failed to $finalUrl', e);
+      AppLogger.logNavigation(finalUrl, false);
+    }
     
     // Remove focus from address bar after navigation
     _urlFocusNode.unfocus();
   }
 
   Future<void> _clearDataAndRestart() async {
-    await _controller.clearCache();
-    await _controller.clearCookies();
-    await _navigateToUrl('https://www.perplexity.ai');
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🔥 Cache and cookies cleared'),
-        backgroundColor: Colors.orange,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    AppLogger.info('Clearing browser data...');
+    try {
+      await _controller.clearCache();
+      await _controller.clearCookies();
+      await _navigateToUrl('https://www.perplexity.ai');
+      
+      AppLogger.info('Browser data cleared successfully');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔥 Cache and cookies cleared'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      AppLogger.error('Failed to clear browser data', e);
+    }
   }
 
   void _showSettings() {
+    AppLogger.info('Opening settings dialog');
+    SingBoxManager.logConnectionStats();
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -182,18 +220,33 @@ class _BrowserPageState extends State<BrowserPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('VPN Status: ${_vpnConnected ? "🟢 Connected" : "🔴 Disconnected"}'),
+            Text('sing-box: ${SingBoxManager.isRunning ? "Running" : "Stopped"}'),
             const SizedBox(height: 16),
-            const Text('Focus Browser v1.0.2'),
-            const Text('Minimalist browser with VPN support'),
+            const Text('Focus Browser v1.0.3'),
+            const Text('Minimalist browser with sing-box VPN'),
             const SizedBox(height: 16),
             const Text('Features:'),
+            const Text('• Advanced logging system'),
+            const Text('• Pre-configured VLESS server'),
             const Text('• Loading indicators'),
             const Text('• Favicon support'),
             const Text('• Auto-focus address bar'),
             const Text('• sing-box VPN integration'),
+            const SizedBox(height: 16),
+            const Text('VLESS Server: 94.131.110.172:23209'),
+            const Text('Local Proxy: 127.0.0.1:1080'),
           ],
         ),
         actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              if (SingBoxManager.isRunning) {
+                await SingBoxManager.testConnection();
+              }
+            },
+            child: const Text('Test Connection'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -205,10 +258,14 @@ class _BrowserPageState extends State<BrowserPage> {
 
   @override
   void dispose() {
+    AppLogger.info('Disposing Focus Browser resources');
     _controller.dispose();
     _urlFocusNode.dispose();
     _isLoading.dispose();
-    _singBoxProcess?.kill();
+    
+    // Останавливаем sing-box
+    SingBoxManager.stopSingBox();
+    
     super.dispose();
   }
 

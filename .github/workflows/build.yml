@@ -38,8 +38,14 @@ jobs:
         mkdir focus_browser_portable
         xcopy build\windows\x64\runner\Release\* focus_browser_portable\ /E /Y
         mkdir focus_browser_portable\sing-box
+        mkdir focus_browser_portable\config
+        mkdir focus_browser_portable\logs
         copy sing-box\config.json focus_browser_portable\sing-box\
-        echo Please download sing-box.exe and place it in the sing-box folder > focus_browser_portable\sing-box\README.txt
+        copy config\vless.txt focus_browser_portable\config\
+        copy sing-box\README.md focus_browser_portable\sing-box\
+        copy logs\README.md focus_browser_portable\logs\
+        echo Pre-configured VLESS server: 94.131.110.172:23209 > focus_browser_portable\sing-box\server_info.txt
+        echo Please download sing-box.exe and place it in the sing-box folder > focus_browser_portable\sing-box\INSTALL.txt
       
     - name: Compress to ZIP
       run: |
