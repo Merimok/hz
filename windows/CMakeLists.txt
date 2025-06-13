@@ -52,5 +52,10 @@ add_subdirectory(${FLUTTER_MANAGED_DIR}/flutter)
 # Application build
 add_subdirectory("runner")
 
-# Generated plugin build rules.
-include(flutter/generated_plugins.cmake)
+# Generated plugin build rules are included in
+# windows/runner/CMakeLists.txt to ensure the plugin
+# libraries are available when the runner target is
+# configured. Including the file here causes duplicate
+# targets when CMake is re-run.  Remove this include to
+# avoid "add_library" redefinition errors.
+# include(flutter/generated_plugins.cmake)

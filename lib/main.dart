@@ -93,7 +93,7 @@ class _BrowserPageState extends State<BrowserPage> {
         // Тестируем соединение
         await Future.delayed(constants.vpnTestDelayDuration); // Use constant
         final connectionTest = await SingBoxManager.testConnection();
-        AppLogger.info(\'${constants.logVpnConnectionTestResult} ${connectionTest ? \'PASSED\' : \'FAILED\'}\'); // Use constant
+        AppLogger.info('${constants.logVpnConnectionTestResult} ${connectionTest ? 'PASSED' : 'FAILED'}'); // Use constant
       } else {
         AppLogger.logVpnConnection(false, SingBoxManager.currentServerAddress, SingBoxManager.currentServerPort); // Use SingBoxManager for details
       }
@@ -132,7 +132,7 @@ class _BrowserPageState extends State<BrowserPage> {
       // Set up webview callbacks
       _controller.loadingState.listen((state) {
         _isLoading.value = state == LoadingState.loading;
-        AppLogger.info(\'${constants.logWebViewStateChange} $state\'); // Use constant
+        AppLogger.info('${constants.logWebViewStateChange} $state'); // Use constant
       });
       
       _controller.url.listen((url) {
@@ -145,9 +145,9 @@ class _BrowserPageState extends State<BrowserPage> {
       
       _urlController.text = _currentUrl;
       await _controller.loadUrl(_currentUrl);
-      AppLogger.info(\'WebView initialized successfully for: $_currentUrl\');
+      AppLogger.info('WebView initialized successfully for: $_currentUrl');
     } catch (e) {
-      AppLogger.error(\'WebView initialization failed for $_currentUrl\', e);
+      AppLogger.error('WebView initialization failed for $_currentUrl', e);
     }
   }
 
@@ -156,13 +156,13 @@ class _BrowserPageState extends State<BrowserPage> {
       _currentUrl = url;
       _urlController.text = url;
     });
-    AppLogger.info(\'Current URL updated to: $url\');
+    AppLogger.info('Current URL updated to: $url');
   }
 
   Future<void> _fetchFavicon(String url) async {
     try {
       final uri = Uri.parse(url);
-      final faviconUrl = \'${uri.scheme}://${uri.host}/favicon.ico\';
+      final faviconUrl = '${uri.scheme}://${uri.host}/favicon.ico';
       
       final response = await http.get(Uri.parse(faviconUrl));
       if (response.statusCode == 200) {
@@ -176,7 +176,7 @@ class _BrowserPageState extends State<BrowserPage> {
       }
     } catch (e) {
       // Favicon fetch failed, use default icon
-      AppLogger.error(\'Favicon fetch failed for $url\', e);
+      AppLogger.error('Favicon fetch failed for $url', e);
       setState(() {
         _favicon = null;
       });
@@ -184,7 +184,7 @@ class _BrowserPageState extends State<BrowserPage> {
   }
 
   Future<void> _navigateToUrl(String url) async {
-    AppLogger.info(\'${constants.logNavigation} $url\'); // Use constant
+    AppLogger.info('${constants.logNavigation} $url'); // Use constant
     _isLoading.value = true;
     
     String finalUrl = url.trim(); // Trim whitespace
@@ -193,15 +193,15 @@ class _BrowserPageState extends State<BrowserPage> {
       // Try to parse the URL first to catch obvious errors
       Uri.parse(finalUrl); // This will throw FormatException if invalid
 
-      if (!finalUrl.startsWith(\'http://\') && !finalUrl.startsWith(\'https://\')) {
-        if (finalUrl.contains(\'.\') && !finalUrl.contains(\' \')) {
-          finalUrl = \'https://$finalUrl\';
+      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+        if (finalUrl.contains('.') && !finalUrl.contains(' ')) {
+          finalUrl = 'https://$finalUrl';
         } else {
-          finalUrl = \'${constants.searchEngineUrl}${Uri.encodeComponent(finalUrl)}\'; // Use constant
+          finalUrl = '${constants.searchEngineUrl}${Uri.encodeComponent(finalUrl)}'; // Use constant
         }
       }
     } catch (e) {
-      AppLogger.error(\'Invalid URL format: $finalUrl\', e);
+      AppLogger.error('Invalid URL format: $finalUrl', e);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(constants.urlInvalidMessage), // Use constant
@@ -218,9 +218,9 @@ class _BrowserPageState extends State<BrowserPage> {
 
     try {
       await _controller.loadUrl(finalUrl);
-      AppLogger.info(\'${constants.logNavigationSuccess} $finalUrl\'); // Use constant
+      AppLogger.info('${constants.logNavigationSuccess} $finalUrl'); // Use constant
     } catch (e) {
-      AppLogger.error(\'${constants.logNavigationFailed} $finalUrl\', e); // Use constant
+      AppLogger.error('${constants.logNavigationFailed} $finalUrl', e); // Use constant
       // Optionally, show error to user via SnackBar
     }
     
@@ -470,14 +470,14 @@ class _BrowserPageState extends State<BrowserPage> {
             // Clear data button
             IconButton(
               onPressed: _clearDataAndRestart,
-              icon: const Text(\'🔥\', style: TextStyle(fontSize: constants.appBarTextIconSize)), // Use constant
+              icon: const Text('🔥', style: TextStyle(fontSize: constants.appBarTextIconSize)), // Use constant
               tooltip: constants.clearDataButtonTooltip, // Use constant
             ),
             
             // Settings button
             IconButton(
               onPressed: _showSettings,
-              icon: const Text(\'⚙\', style: TextStyle(fontSize: constants.appBarTextIconSize)), // Use constant
+              icon: const Text('⚙', style: TextStyle(fontSize: constants.appBarTextIconSize)), // Use constant
               tooltip: constants.settingsButtonTooltip, // Use constant
             ),
             
