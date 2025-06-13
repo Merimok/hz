@@ -16,56 +16,65 @@ class SingBoxManager {
   static Future<bool> startSingBox() async {
     try {
       AppLogger.info('Starting sing-box...');
-      
+
       // Путь к sing-box исполняемому файлу
       final singBoxPath = path.join(Directory.current.path, 'sing-box', 'sing-box.exe');
       final configPath = path.join(Directory.current.path, 'sing-box', 'config.json');
-      
+
       // Проверяем существование файлов
       if (!await File(singBoxPath).exists()) {
         AppLogger.error('sing-box executable not found at: $singBoxPath');
         return false;
       }
-      
+
       if (!await File(configPath).exists()) {
         AppLogger.error('sing-box config not found at: $configPath');
         return false;
       }
-      
+
       AppLogger.info('sing-box executable found: $singBoxPath');
       AppLogger.info('sing-box config found: $configPath');
-      
+
       // Запускаем sing-box
       _singBoxProcess = await Process.start(
         singBoxPath,
         ['run', '-c', configPath],
         workingDirectory: Directory.current.path,
+        runInShell: true, // Улучшение: запуск через shell для совместимости
       );
-      
+
       if (_singBoxProcess != null) {
         _isRunning = true;
-        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}');
-        
-        // Слушаем stdout для логирования
+        AppLogger.info('sing-box started with PID: [32m[1m${_singBoxProcess!.pid}[0m'); // Цветной PID
+
+        // Улучшение: буферизация вывода
         _singBoxProcess!.stdout.transform(utf8.decoder).listen((data) {
-          AppLogger.info('sing-box stdout: ${data.trim()}');
+          for (final line in data.split('\n')) {
+            if (line.trim().isNotEmpty) {
+              AppLogger.info('sing-box stdout: ${line.trim()}');
+            }
+          }
         });
-        
-        // Слушаем stderr для ошибок
+
         _singBoxProcess!.stderr.transform(utf8.decoder).listen((data) {
-          AppLogger.error('sing-box stderr: ${data.trim()}');
+          for (final line in data.split('\n')) {
+            if (line.trim().isNotEmpty) {
+              AppLogger.error('sing-box stderr: ${line.trim()}');
+            }
+          }
         });
-        
+
         // Ждем небольшое время для инициализации
         await Future.delayed(const Duration(seconds: 3));
-        
+
         AppLogger.logSingBoxStatus('started');
         return true;
       }
-      
+
       return false;
-    } catch (e) {
+    } catch (e, st) {
       AppLogger.error('Failed to start sing-box', e);
+      AppLogger.error('StackTrace', st);
       return false;
     }
   }
@@ -89,11 +98,11 @@ class SingBoxManager {
   static Future<bool> testConnection() async {
     try {
       AppLogger.info('Testing sing-box connection...');
-      
+
       // Простой тест соединения через SOCKS5 прокси
       final socket = await Socket.connect('127.0.0.1', 1080);
       socket.destroy();
-      
+
       AppLogger.info('sing-box connection test successful');
       return true;
     } catch (e) {
