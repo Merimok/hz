@@ -11,7 +11,7 @@ if [ -f "windows/flutter/generated_plugins.cmake" ]; then
 fi
 
 # Copy our GitHub Actions compatible version
-cp "windows/flutter/generated_plugins_github_actions_fixed.cmake" "windows/flutter/generated_plugins.cmake"
+cp "windows/flutter/generated_plugins_fixed.cmake" "windows/flutter/generated_plugins.cmake"
 echo "✅ Applied GitHub Actions compatible generated_plugins.cmake"
 
 # Make the file read-only to prevent Flutter from overwriting it
