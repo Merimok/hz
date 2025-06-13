@@ -9,6 +9,34 @@ const String appDescription = 'Minimalist browser with sing-box VPN';
 const String defaultHomePageUrl = 'https://www.perplexity.ai';
 const String searchEngineUrl = 'https://www.perplexity.ai/search?q='; // {query} will be appended
 
+// Ad Blocking & Tracking Protection
+const List<String> blockedDomains = [
+  'doubleclick.net',
+  'googlesyndication.com',
+  'googleadservices.com',
+  'facebook.net',
+  'connect.facebook.net',
+  'analytics.google.com',
+  'google-analytics.com',
+  'googletagmanager.com',
+  'googletagservices.com',
+  'ads.yahoo.com',
+  'adsystem.amazon.com',
+  'amazon-adsystem.com',
+  'bing.com/th',
+  'outbrain.com',
+  'taboola.com',
+  'criteo.com',
+  'adsafeprotected.com',
+  'scorecardresearch.com',
+  'quantserve.com',
+  'addthis.com',
+  'sharethis.com',
+];
+
+const String adBlockedMessage = '🛡️ Ad blocked';
+const String trackerBlockedMessage = '🔒 Tracker blocked';
+
 // UI Strings - AppBar
 const String backButtonTooltip = 'Back';
 const String forwardButtonTooltip = 'Forward';
@@ -48,11 +76,28 @@ const String urlInvalidMessage = 'Invalid URL entered';
 const double appBarIconSize = 22.0; // Adjusted for better desktop visibility
 const double appBarTextIconSize = 22.0;
 
-// Colors (example, if you want to enforce them more strictly)
-// const Color primaryColor = Color(0xFF4FC3F7); // Light Blue
-// const Color appBarBackgroundColor = Color(0xFF2D2D2D);
-// const Color scaffoldBackgroundColor = Color(0xFF1A1A1A);
-// const Color inputFillColor = Color(0xFF3D3D3D);
+// Colors (MaterialColor for primary color #4FC3F7)
+const MaterialColor primaryMaterialColor = MaterialColor(
+  0xFF4FC3F7,
+  <int, Color>{
+    50: Color(0xFFE8F7FE),
+    100: Color(0xFFC5EBFC),
+    200: Color(0xFF9FDDF9),
+    300: Color(0xFF79CFF6),
+    400: Color(0xFF5CC4F4),
+    500: Color(0xFF4FC3F7), // Primary color
+    600: Color(0xFF3FA9D9),
+    700: Color(0xFF2F8CB8),
+    800: Color(0xFF1F7096),
+    900: Color(0xFF0F5474),
+  },
+);
+
+const Color appBarBackgroundColor = Color(0xFF2D2D2D);
+const Color scaffoldBackgroundColor = Color(0xFF1A1A1A);
+const Color inputFillColor = Color(0xFF3D3D3D);
+const Color vpnConnectedColor = Color(0xFF4CAF50);
+const Color vpnDisconnectedColor = Color(0xFFF44336);
 
 // Durations
 const Duration snackBarDuration = Duration(seconds: 2);
