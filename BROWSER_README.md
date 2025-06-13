@@ -140,7 +140,11 @@ flutter test integration_test/
 
 ### Building Release Version
 ```bash
+# Local build
 flutter build windows --release
+
+# CI build
+flutter build windows --release --no-pub
 ```
 
 ### Creating Installer

@@ -78,7 +78,7 @@ cmake -B build -S .
 - Debug messaging system functional
 
 ### **✅ GitHub Actions Compatibility:**
-The enhanced solution ensures `flutter build windows --release` will succeed in GitHub Actions by:
+The enhanced solution ensures `flutter build windows --release --no-pub` will succeed in GitHub Actions by:
 - Creating stub plugins when real directories are missing
 - Maintaining build compatibility across environments
 - Providing fallback implementations for all required exports
@@ -105,7 +105,7 @@ The enhanced solution ensures `flutter build windows --release` will succeed in 
 
 The Focus Browser project now has **complete GitHub Actions compatibility** with our enhanced CMake plugin system. The build process will succeed in CI/CD environments regardless of plugin directory availability.
 
-**Build Command Ready:** `flutter build windows --release` ✅  
+**Build Command Ready:** `flutter build windows --release --no-pub` ✅
 **GitHub Actions Ready:** CMake configuration passes ✅  
 **Plugin System:** Enhanced with stub generation ✅  
 

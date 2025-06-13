@@ -117,6 +117,8 @@ flutter run -d windows --debug
 #### Release Build
 ```bash
 flutter build windows --release
+# CI build
+flutter build windows --release --no-pub
 ```
 
 #### CMake Direct Build
@@ -325,7 +327,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
       - run: flutter test
-      - run: flutter build windows
+      - run: flutter build windows --no-pub
 ```
 
 ### Build Artifacts
