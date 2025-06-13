@@ -2,17 +2,17 @@
 # Creates missing plugin directories and CMakeLists.txt files
 # for GitHub Actions compatibility
 
-Write-Host "🔧 Creating plugin stubs for GitHub Actions..." -ForegroundColor Green
+Write-Host "Creating plugin stubs for GitHub Actions..." -ForegroundColor Green
 
 # Define plugin list (from pubspec.yaml dependencies)
 $plugins = @("webview_windows")
 
 foreach ($plugin in $plugins) {
     $pluginDir = "flutter\ephemeral\.plugin_symlinks\$plugin\windows"
-    
-    Write-Host "📁 Creating directory: $pluginDir" -ForegroundColor Yellow
+
+    Write-Host "Creating directory: $pluginDir" -ForegroundColor Yellow
     New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
-    
+
     # Create CMakeLists.txt for the plugin
     $cmakeContent = @"
 # GitHub Actions Compatible Plugin Stub for $plugin
@@ -48,14 +48,14 @@ set_target_properties(${plugin}_plugin PROPERTIES
 # Initialize bundled libraries (empty for stub)
 set(${plugin}_bundled_libraries "" CACHE INTERNAL "$plugin bundled libraries")
 
-message(STATUS "✅ $plugin stub plugin created for GitHub Actions")
+message(STATUS "$plugin stub plugin created for GitHub Actions")
 "@
 
     $cmakeFile = Join-Path $pluginDir "CMakeLists.txt"
-    Write-Host "📝 Writing CMakeLists.txt: $cmakeFile" -ForegroundColor Yellow
+    Write-Host "Writing CMakeLists.txt: $cmakeFile" -ForegroundColor Yellow
     $cmakeContent | Out-File -FilePath $cmakeFile -Encoding UTF8
-    
-    Write-Host "✅ Created stub for plugin: $plugin" -ForegroundColor Green
+
+    Write-Host "Created stub for plugin: $plugin" -ForegroundColor Green
 }
 
-Write-Host "🎉 All plugin stubs created successfully!" -ForegroundColor Green
+Write-Host "All plugin stubs created successfully!" -ForegroundColor Green
