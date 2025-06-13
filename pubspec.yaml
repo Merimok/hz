@@ -1,0 +1,30 @@
+name: focus_browser
+description: A minimalist dark browser with sing-box VPN support
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_windows: ^0.3.2
+  cupertino_icons: ^1.0.2
+  process: ^5.0.0
+  path: ^1.8.3
+  http: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Enable Windows desktop support
+  platforms:
+    windows:
