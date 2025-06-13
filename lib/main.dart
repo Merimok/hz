@@ -11,7 +11,7 @@ void main() async {
   
   // Инициализируем логгер
   await AppLogger.initialize();
-  AppLogger.info('=== Focus Browser v1.0.4 Starting ===');
+  AppLogger.info('=== Focus Browser v1.0.5 Starting ===');
   
   runApp(const FocusBrowserApp());
 }
@@ -222,7 +222,7 @@ class _BrowserPageState extends State<BrowserPage> {
             Text('VPN Status: ${_vpnConnected ? "🟢 Connected" : "🔴 Disconnected"}'),
             Text('sing-box: ${SingBoxManager.isRunning ? "Running" : "Stopped"}'),
             const SizedBox(height: 16),
-            const Text('Focus Browser v1.0.4'),
+            const Text('Focus Browser v1.0.5'),
             const Text('Minimalist browser with sing-box VPN'),
             const SizedBox(height: 16),
             const Text('Features:'),

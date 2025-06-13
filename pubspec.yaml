@@ -3,7 +3,7 @@ description: A minimalist dark browser with sing-box VPN support
 
 publish_to: 'none'
 
-version: 1.0.4+1
+version: 1.0.5+1
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
