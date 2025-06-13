@@ -4,11 +4,14 @@
 
 Write-Host "Creating plugin stubs for GitHub Actions..." -ForegroundColor Green
 
+# Determine the directory of this script
+$scriptDir = $PSScriptRoot
+
 # Define plugin list (from pubspec.yaml dependencies)
 $plugins = @("webview_windows")
 
 foreach ($plugin in $plugins) {
-    $pluginDir = "flutter\ephemeral\.plugin_symlinks\$plugin\windows"
+    $pluginDir = Join-Path $scriptDir "flutter/ephemeral/.plugin_symlinks/$plugin/windows"
 
     Write-Host "Creating directory: $pluginDir" -ForegroundColor Yellow
     New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
