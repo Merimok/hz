@@ -1,8 +1,8 @@
-# Hz Browser - Advanced VPN-Enabled Web Browser 🌐
+# Focus Browser (hz) - Advanced VPN-Enabled Web Browser 🌐
 
 [![Build Status](https://github.com/user/hz/workflows/Build/badge.svg)](https://github.com/user/hz/actions)
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24.0+-blue.svg)](https://flutter.dev/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://flutter.dev/desktop)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://flutter.dev/desktop)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CMake Fix](https://img.shields.io/badge/CMake-Fixed-success.svg)](CMAKE_BUILD_FIX_README.md)
 
