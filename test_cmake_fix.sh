@@ -12,11 +12,14 @@ echo "========================================"
 TEST_DIR=$(mktemp -d)
 echo "📁 Created test directory: $TEST_DIR"
 
+# Determine repo root dynamically
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
 # Copy relevant CMake files
 echo "📋 Copying CMake files for testing..."
-cp /home/tannim/hz/windows/flutter/generated_plugins_github_actions_fixed.cmake $TEST_DIR/
-cp /home/tannim/hz/windows/CMakeLists.txt $TEST_DIR/
-cp /home/tannim/hz/windows/runner/CMakeLists.txt $TEST_DIR/runner_cmake.txt
+cp "$REPO_ROOT/windows/flutter/generated_plugins_github_actions_fixed.cmake" "$TEST_DIR/"
+cp "$REPO_ROOT/windows/CMakeLists.txt" "$TEST_DIR/"
+cp "$REPO_ROOT/windows/runner/CMakeLists.txt" "$TEST_DIR/runner_cmake.txt"
 
 # Create a minimal test CMakeLists.txt
 cat > $TEST_DIR/test_cmake.txt << 'EOF'
