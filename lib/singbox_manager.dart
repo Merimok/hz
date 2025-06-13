@@ -3,7 +3,17 @@ import 'dart:convert';
 import 'package:path/path.dart' as path;
 import 'logger.dart';
 
-/// A manager class for controlling the sing-box proxy service
+//           i        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}'); (_singBoxProcess != null) {
+        _isRunning = true;
+        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}');
+
+        // Improved output buffering
+        _singBoxProcess!.stdout.transform(utf8.decoder).listen((data) {singBoxProcess != null) {
+        _isRunning = true;
+        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}');
+
+        // Improved output buffering
+        _singBoxProcess!.stdout.transform(utf8.decoder).listen((data) {nager class for controlling the sing-box proxy service
 class SingBoxManager {
   static Process? _singBoxProcess;
   static bool _isRunning = false;
@@ -71,7 +81,7 @@ class SingBoxManager {
           Platform.isWindows ? 'sing-box.exe' : 'sing-box');
       final configPath = path.join(Directory.current.path, 'sing-box', 'config.json');
 
-      // Проверяем существование файлов
+      // Check if files exist
       if (!await File(singBoxPath).exists()) {
         AppLogger.error('sing-box executable not found at: $singBoxPath');
         return false;
@@ -109,7 +119,7 @@ class SingBoxManager {
         _isRunning = true;
         AppLogger.info('sing-box started with PID: [32m[1m${_singBoxProcess!.pid}[0m'); // Цветной PID
 
-        // Улучшение: буферизация вывода
+        // Improved output buffering
         _singBoxProcess!.stdout.transform(utf8.decoder).listen((data) {
           for (final line in data.split('\n')) {
             if (line.trim().isNotEmpty) {
