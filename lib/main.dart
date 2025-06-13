@@ -1,39 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:webview_windows/webview_windows.dart';
-impor  Future<void> _initializeWebView() async {
-    try {
-      AppLogger.info(constants.logWebViewInitialization); // Use constant
-      await _controller.initialize();
-      
-      // Set up ad blocking na        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // VPN Status and Toggle
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${constants.vpnStatusLabel} ${SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText}'), // Use constants
-                Switch(
-                  value: SingBoxManager.isRunning,
-                  onChanged: (value) async {
-                    Navigator.pop(context); // Close dialog first
-                    await _toggleVPN();
-                  },
-                  activeColor: constants.primaryMaterialColor,
-                ),
-              ],
-            ),
-            Text('${constants.singboxStatusLabel} ${SingBoxManager.isRunning ? constants.singboxRunningText : constants.singboxStoppedText}'), // Use constantson delegate
-      _controller.setNavigationDelegate((navigation) {
-        if (_shouldBlockUrl(navigation.url)) {
-          return NavigationDecision.prevent;
-        }
-        return NavigationDecision.navigate;
-      });
-      
-      // Set up webview callbackskage:http/http.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'logger.dart';
 import 'singbox_manager.dart';
@@ -44,7 +12,7 @@ void main() async {
   
   // Инициализируем логгер
   await AppLogger.initialize();
-  AppLogger.info(constants.logAppStart); // Use constant
+  AppLogger.info(constants.logAppStart);
   
   runApp(const FocusBrowserApp());
 }
@@ -55,7 +23,7 @@ class FocusBrowserApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: constants.appTitle, // Use constant
+      title: constants.appTitle,
       theme: ThemeData.dark().copyWith(
         primarySwatch: constants.primaryMaterialColor,
         scaffoldBackgroundColor: constants.scaffoldBackgroundColor,
@@ -152,6 +120,14 @@ class _BrowserPageState extends State<BrowserPage> {
     try {
       AppLogger.info(constants.logWebViewInitialization); // Use constant
       await _controller.initialize();
+      
+      // Set up ad blocking navigation delegate
+      _controller.setNavigationDelegate((navigation) {
+        if (_shouldBlockUrl(navigation.url)) {
+          return NavigationDecision.prevent;
+        }
+        return NavigationDecision.navigate;
+      });
       
       // Set up webview callbacks
       _controller.loadingState.listen((state) {
@@ -342,29 +318,46 @@ class _BrowserPageState extends State<BrowserPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(\'${constants.vpnStatusLabel} ${SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText}\'), // Use constants
-            Text(\'${constants.singboxStatusLabel} ${SingBoxManager.isRunning ? constants.singboxRunningText : constants.singboxStoppedText}\'), // Use constants
+            // VPN Status and Toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('${constants.vpnStatusLabel} ${SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText}'), // Use constants
+                Switch(
+                  value: SingBoxManager.isRunning,
+                  onChanged: (value) async {
+                    Navigator.pop(context); // Close dialog first
+                    await _toggleVPN();
+                  },
+                  activeColor: constants.primaryMaterialColor,
+                ),
+              ],
+            ),
+            Text('${constants.singboxStatusLabel} ${SingBoxManager.isRunning ? constants.singboxRunningText : constants.singboxStoppedText}'), // Use constants
+            Text('${constants.vlessServerLabel} ${SingBoxManager.currentServerAddress}:${SingBoxManager.currentServerPort}'), // Use SingBoxManager for details
+            Text('${constants.localProxyLabel} ${SingBoxManager.localProxyAddress}:${SingBoxManager.localProxyPort}'), // Use SingBoxManager for details
             const SizedBox(height: 16),
-            const Text(\'${constants.appTitle} ${constants.appVersion}\'), // Use constants
-            const Text(constants.appDescription), // Use constant
+            Text('${constants.featuresLabel}'), // Use constant
+            ...constants.featureList.map((feature) => Text(feature)), // Use constant list
             const SizedBox(height: 16),
-            const Text(constants.featuresLabel), // Use constant
-            ...constants.featureList.map((item) => Text(item)).toList(), // Use constant list
-            const SizedBox(height: 16),
-            Text(\'${constants.vlessServerLabel} ${SingBoxManager.currentServerAddress}:${SingBoxManager.currentServerPort}\'), // Use SingBoxManager for details
-            Text(\'${constants.localProxyLabel} ${SingBoxManager.localProxyAddress}:${SingBoxManager.localProxyPort}\'), // Use SingBoxManager for details
+            // Test Connection Button
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final testResult = await SingBoxManager.testConnection();
+                AppLogger.info('${constants.logVpnConnectionTestResult} ${testResult ? 'PASSED' : 'FAILED'}');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Connection test: ${testResult ? 'PASSED' : 'FAILED'}'),
+                    backgroundColor: testResult ? Colors.green : Colors.red,
+                  ),
+                );
+              },
+              child: const Text(constants.testConnectionButtonLabel), // Use constant
+            ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              if (SingBoxManager.isRunning) {
-                await SingBoxManager.testConnection();
-              }
-            },
-            child: const Text(constants.testConnectionButtonLabel), // Use constant
-          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(constants.closeButtonLabel), // Use constant

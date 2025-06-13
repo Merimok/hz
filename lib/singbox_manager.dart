@@ -7,6 +7,12 @@ class SingBoxManager {
   static Process? _singBoxProcess;
   static bool _isRunning = false;
 
+  // Server information from config.json
+  static String get currentServerAddress => '94.131.110.172';
+  static int get currentServerPort => 23209;
+  static String get localProxyAddress => '127.0.0.1';
+  static int get localProxyPort => 1080;
+
   static Future<bool> startSingBox() async {
     try {
       AppLogger.info('Starting sing-box...');
