@@ -3,17 +3,7 @@ import 'dart:convert';
 import 'package:path/path.dart' as path;
 import 'logger.dart';
 
-//           i        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}'); (_singBoxProcess != null) {
-        _isRunning = true;
-        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}');
-
-        // Improved output buffering
-        _singBoxProcess!.stdout.transform(utf8.decoder).listen((data) {singBoxProcess != null) {
-        _isRunning = true;
-        AppLogger.info('sing-box started with PID: ${_singBoxProcess!.pid}');
-
-        // Improved output buffering
-        _singBoxProcess!.stdout.transform(utf8.decoder).listen((data) {nager class for controlling the sing-box proxy service
+/// Manager class for controlling the sing-box proxy service
 class SingBoxManager {
   static Process? _singBoxProcess;
   static bool _isRunning = false;
