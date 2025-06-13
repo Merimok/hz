@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.14)
 project(flutter_windows_backend LANGUAGES CXX)
 
 # Consume FLUTTER_TARGET_PLATFORM passed from the Flutter tool to avoid unused variable warnings

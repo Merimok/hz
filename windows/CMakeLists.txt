@@ -1,4 +1,3 @@
-# filepath: /home/tannim/hz/windows/CMakeLists.txt
 # Top-level CMakeLists for Windows build
 cmake_minimum_required(VERSION 3.14)
 project(focus_browser LANGUAGES CXX)
