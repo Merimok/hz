@@ -52,5 +52,9 @@ add_subdirectory(${FLUTTER_MANAGED_DIR}/flutter)
 # Application build
 add_subdirectory("runner")
 
-# Generated plugin build rules.
-include(flutter/generated_plugins.cmake)
+# Generated plugin build rules with fallback to a fixed version.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/flutter/generated_plugins_fixed.cmake")
+  include(flutter/generated_plugins_fixed.cmake)
+else()
+  include(flutter/generated_plugins.cmake)
+endif()
