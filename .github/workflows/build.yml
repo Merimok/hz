@@ -29,6 +29,13 @@ jobs:
       
     - name: Get dependencies
       run: flutter pub get
+
+    - name: Apply GitHub Actions Plugin Fix
+      run: |
+        echo "🔧 Applying GitHub Actions CMake plugin fix..."
+        Copy-Item -Path "windows/flutter/generated_plugins_fixed.cmake" -Destination "windows/flutter/generated_plugins.cmake" -Force
+        powershell -ExecutionPolicy Bypass -File "windows/create_plugin_stubs.ps1"
+        echo "✅ Plugin stubs created and generated_plugins.cmake updated"
       
     - name: Build Windows app
       run: flutter build windows --release
