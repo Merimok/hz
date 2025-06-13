@@ -50,7 +50,7 @@ add_subdirectory given source 'flutter/ephemeral/.plugin_symlinks/webview_window
     powershell -ExecutionPolicy Bypass -File "create_plugin_stubs.ps1"
 
 - name: Build Windows Release
-  run: flutter build windows --release
+  run: flutter build windows --release --no-pub
 ```
 
 ### 3. Enhanced Plugin Detection

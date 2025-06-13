@@ -43,8 +43,11 @@ flutter pub get
 # Development
 flutter run -d windows
 
-# Production Release
+# Production Release (local)
 flutter build windows --release
+
+# CI/CD (skip pub get)
+flutter build windows --release --no-pub
 ```
 
 ## 📚 Complete Documentation Suite
@@ -186,6 +189,8 @@ git push origin feature/new-awesome-feature
 # Local build test
 flutter build windows --debug
 flutter build windows --release
+# CI build
+flutter build windows --release --no-pub
 
 # CMake direct test
 cd windows && cmake --build build --config Release

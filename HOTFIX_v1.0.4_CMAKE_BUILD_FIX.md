@@ -64,6 +64,7 @@ windows/
 GitHub Actions теперь должны успешно выполнить:
 ```bash
 flutter build windows --release
+flutter build windows --release --no-pub
 ```
 
 Если сборка пройдет успешно, будет создан:

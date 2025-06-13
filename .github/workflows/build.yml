@@ -38,7 +38,7 @@ jobs:
         echo "Plugin stubs created and generated_plugins.cmake updated"
       
     - name: Build Windows app
-      run: flutter build windows --release
+      run: flutter build windows --release --no-pub
       
     - name: Create portable package
       run: |

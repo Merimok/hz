@@ -104,7 +104,7 @@ windows/                  # Windows сборка
 - Все CMake ошибки исправлены
 - Плагин webview_windows настроен
 - Fallback системы реализованы
-- **Команда сборки:** `flutter build windows --release`
+- **Команда сборки:** `flutter build windows --release --no-pub`
 
 ### ✅ GitHub Actions:
 - Автоматическая сборка настроена
