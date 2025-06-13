@@ -5,13 +5,14 @@ import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'logger.dart';
 import 'singbox_manager.dart';
+import 'app_constants.dart' as constants;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Инициализируем логгер
   await AppLogger.initialize();
-  AppLogger.info('=== Focus Browser v1.0.5 Starting ===');
+  AppLogger.info(constants.logAppStart); // Use constant
   
   runApp(const FocusBrowserApp());
 }
@@ -22,7 +23,7 @@ class FocusBrowserApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Focus Browser',
+      title: constants.appTitle, // Use constant
       theme: ThemeData.dark().copyWith(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFF1A1A1A),
@@ -59,13 +60,13 @@ class _BrowserPageState extends State<BrowserPage> {
   final FocusNode _urlFocusNode = FocusNode();
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   bool _vpnConnected = false;
-  String _currentUrl = 'https://www.perplexity.ai';
+  String _currentUrl = constants.defaultHomePageUrl; // Use constant
   Uint8List? _favicon;
 
   @override
   void initState() {
     super.initState();
-    AppLogger.info('Initializing Focus Browser');
+    AppLogger.info(constants.logInitializingBrowser); // Use constant
     _initializeVPN();
     _initializeWebView();
     
@@ -77,7 +78,7 @@ class _BrowserPageState extends State<BrowserPage> {
 
   Future<void> _initializeVPN() async {
     try {
-      AppLogger.info('Starting VPN initialization...');
+      AppLogger.info(constants.logVpnInitialization); // Use constant
       
       // Запускаем sing-box
       final success = await SingBoxManager.startSingBox();
@@ -87,17 +88,17 @@ class _BrowserPageState extends State<BrowserPage> {
       });
       
       if (success) {
-        AppLogger.logVpnConnection(true, '94.131.110.172', 23209);
+        AppLogger.logVpnConnection(true, SingBoxManager.currentServerAddress, SingBoxManager.currentServerPort); // Use SingBoxManager for details
         
         // Тестируем соединение
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(constants.vpnTestDelayDuration); // Use constant
         final connectionTest = await SingBoxManager.testConnection();
-        AppLogger.info('VPN connection test: ${connectionTest ? 'PASSED' : 'FAILED'}');
+        AppLogger.info(\'${constants.logVpnConnectionTestResult} ${connectionTest ? \'PASSED\' : \'FAILED\'}\'); // Use constant
       } else {
-        AppLogger.logVpnConnection(false, '94.131.110.172', 23209);
+        AppLogger.logVpnConnection(false, SingBoxManager.currentServerAddress, SingBoxManager.currentServerPort); // Use SingBoxManager for details
       }
     } catch (e) {
-      AppLogger.error('VPN initialization error', e);
+      AppLogger.error(constants.logVpnError, e); // Use constant
       setState(() {
         _vpnConnected = false;
       });
@@ -106,28 +107,28 @@ class _BrowserPageState extends State<BrowserPage> {
 
   Future<void> _initializeWebView() async {
     try {
-      AppLogger.info('Initializing WebView...');
+      AppLogger.info(constants.logWebViewInitialization); // Use constant
       await _controller.initialize();
       
       // Set up webview callbacks
       _controller.loadingState.listen((state) {
         _isLoading.value = state == LoadingState.loading;
-        AppLogger.info('WebView loading state: $state');
+        AppLogger.info(\'${constants.logWebViewStateChange} $state\'); // Use constant
       });
       
       _controller.url.listen((url) {
         if (url.isNotEmpty) {
           _updateCurrentUrl(url);
           _fetchFavicon(url);
-          AppLogger.logNavigation(url, true);
+          // AppLogger.logNavigation(url, true); // Logging handled in _navigateToUrl and _updateCurrentUrl
         }
       });
       
       _urlController.text = _currentUrl;
       await _controller.loadUrl(_currentUrl);
-      AppLogger.info('WebView initialized successfully');
+      AppLogger.info(\'WebView initialized successfully for: $_currentUrl\');
     } catch (e) {
-      AppLogger.error('WebView initialization failed', e);
+      AppLogger.error(\'WebView initialization failed for $_currentUrl\', e);
     }
   }
 
@@ -136,21 +137,27 @@ class _BrowserPageState extends State<BrowserPage> {
       _currentUrl = url;
       _urlController.text = url;
     });
+    AppLogger.info(\'Current URL updated to: $url\');
   }
 
   Future<void> _fetchFavicon(String url) async {
     try {
       final uri = Uri.parse(url);
-      final faviconUrl = '${uri.scheme}://${uri.host}/favicon.ico';
+      final faviconUrl = \'${uri.scheme}://${uri.host}/favicon.ico\';
       
       final response = await http.get(Uri.parse(faviconUrl));
       if (response.statusCode == 200) {
         setState(() {
           _favicon = response.bodyBytes;
         });
+      } else {
+        setState(() {
+          _favicon = null;
+        });
       }
     } catch (e) {
       // Favicon fetch failed, use default icon
+      AppLogger.error(\'Favicon fetch failed for $url\', e);
       setState(() {
         _favicon = null;
       });
@@ -158,27 +165,44 @@ class _BrowserPageState extends State<BrowserPage> {
   }
 
   Future<void> _navigateToUrl(String url) async {
-    AppLogger.info('Navigating to: $url');
+    AppLogger.info(\'${constants.logNavigation} $url\'); // Use constant
     _isLoading.value = true;
     
-    String finalUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      if (url.contains('.') && !url.contains(' ')) {
-        finalUrl = 'https://$url';
-      } else {
-        finalUrl = 'https://www.perplexity.ai/search?q=${Uri.encodeComponent(url)}';
+    String finalUrl = url.trim(); // Trim whitespace
+    
+    try {
+      // Try to parse the URL first to catch obvious errors
+      Uri.parse(finalUrl); // This will throw FormatException if invalid
+
+      if (!finalUrl.startsWith(\'http://\') && !finalUrl.startsWith(\'https://\')) {
+        if (finalUrl.contains(\'.\') && !finalUrl.contains(\' \')) {
+          finalUrl = \'https://$finalUrl\';
+        } else {
+          finalUrl = \'${constants.searchEngineUrl}${Uri.encodeComponent(finalUrl)}\'; // Use constant
+        }
       }
+    } catch (e) {
+      AppLogger.error(\'Invalid URL format: $finalUrl\', e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(constants.urlInvalidMessage), // Use constant
+          backgroundColor: Colors.red,
+          duration: constants.snackBarDuration, // Use constant
+        ),
+      );
+      _isLoading.value = false;
+      return;
     }
     
     _urlController.text = finalUrl;
-    _currentUrl = finalUrl;
-    
+    // _currentUrl = finalUrl; // Let the webview callback update _currentUrl via _updateCurrentUrl
+
     try {
       await _controller.loadUrl(finalUrl);
-      AppLogger.logNavigation(finalUrl, true);
+      AppLogger.info(\'${constants.logNavigationSuccess} $finalUrl\'); // Use constant
     } catch (e) {
-      AppLogger.error('Navigation failed to $finalUrl', e);
-      AppLogger.logNavigation(finalUrl, false);
+      AppLogger.error(\'${constants.logNavigationFailed} $finalUrl\', e); // Use constant
+      // Optionally, show error to user via SnackBar
     }
     
     // Remove focus from address bar after navigation
@@ -186,55 +210,52 @@ class _BrowserPageState extends State<BrowserPage> {
   }
 
   Future<void> _clearDataAndRestart() async {
-    AppLogger.info('Clearing browser data...');
+    AppLogger.info(constants.logClearingData); // Use constant
     try {
       await _controller.clearCache();
       await _controller.clearCookies();
-      await _navigateToUrl('https://www.perplexity.ai');
+      await _navigateToUrl(constants.defaultHomePageUrl); // Use constant
       
-      AppLogger.info('Browser data cleared successfully');
+      AppLogger.info(constants.logDataCleared); // Use constant
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🔥 Cache and cookies cleared'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (mounted) { // Check if widget is still in the tree
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(constants.cacheClearedMessage), // Use constant
+            backgroundColor: Colors.orange,
+            duration: constants.snackBarDuration, // Use constant
+          ),
+        );
+      }
     } catch (e) {
-      AppLogger.error('Failed to clear browser data', e);
+      AppLogger.error(constants.logFailedToClearData, e); // Use constant
     }
   }
 
   void _showSettings() {
-    AppLogger.info('Opening settings dialog');
+    AppLogger.info(constants.logOpeningSettings); // Use constant
     SingBoxManager.logConnectionStats();
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF2D2D2D),
-        title: const Text('⚙ Settings'),
+        title: const Text(constants.settingsDialogTitle), // Use constant
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('VPN Status: ${_vpnConnected ? "🟢 Connected" : "🔴 Disconnected"}'),
-            Text('sing-box: ${SingBoxManager.isRunning ? "Running" : "Stopped"}'),
+            Text(\'${constants.vpnStatusLabel} ${SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText}\'), // Use constants
+            Text(\'${constants.singboxStatusLabel} ${SingBoxManager.isRunning ? constants.singboxRunningText : constants.singboxStoppedText}\'), // Use constants
             const SizedBox(height: 16),
-            const Text('Focus Browser v1.0.5'),
-            const Text('Minimalist browser with sing-box VPN'),
+            const Text(\'${constants.appTitle} ${constants.appVersion}\'), // Use constants
+            const Text(constants.appDescription), // Use constant
             const SizedBox(height: 16),
-            const Text('Features:'),
-            const Text('• Advanced logging system'),
-            const Text('• Pre-configured VLESS server'),
-            const Text('• Loading indicators'),
-            const Text('• Favicon support'),
-            const Text('• Auto-focus address bar'),
-            const Text('• sing-box VPN integration'),
+            const Text(constants.featuresLabel), // Use constant
+            ...constants.featureList.map((item) => Text(item)).toList(), // Use constant list
             const SizedBox(height: 16),
-            const Text('VLESS Server: 94.131.110.172:23209'),
-            const Text('Local Proxy: 127.0.0.1:1080'),
+            Text(\'${constants.vlessServerLabel} ${SingBoxManager.currentServerAddress}:${SingBoxManager.currentServerPort}\'), // Use SingBoxManager for details
+            Text(\'${constants.localProxyLabel} ${SingBoxManager.localProxyAddress}:${SingBoxManager.localProxyPort}\'), // Use SingBoxManager for details
           ],
         ),
         actions: [
@@ -245,11 +266,11 @@ class _BrowserPageState extends State<BrowserPage> {
                 await SingBoxManager.testConnection();
               }
             },
-            child: const Text('Test Connection'),
+            child: const Text(constants.testConnectionButtonLabel), // Use constant
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: const Text(constants.closeButtonLabel), // Use constant
           ),
         ],
       ),
@@ -258,8 +279,9 @@ class _BrowserPageState extends State<BrowserPage> {
 
   @override
   void dispose() {
-    AppLogger.info('Disposing Focus Browser resources');
+    AppLogger.info(constants.logDisposingResources); // Use constant
     _controller.dispose();
+    _urlController.dispose();
     _urlFocusNode.dispose();
     _isLoading.dispose();
     
@@ -279,15 +301,15 @@ class _BrowserPageState extends State<BrowserPage> {
             // Back button
             IconButton(
               onPressed: () => _controller.goBack(),
-              icon: const Icon(Icons.arrow_back_ios, size: 20),
-              tooltip: 'Back',
+              icon: const Icon(Icons.arrow_back_ios, size: constants.appBarIconSize), // Use constant
+              tooltip: constants.backButtonTooltip, // Use constant
             ),
             
             // Forward button
             IconButton(
               onPressed: () => _controller.goForward(),
-              icon: const Icon(Icons.arrow_forward_ios, size: 20),
-              tooltip: 'Forward',
+              icon: const Icon(Icons.arrow_forward_ios, size: constants.appBarIconSize), // Use constant
+              tooltip: constants.forwardButtonTooltip, // Use constant
             ),
             
             const SizedBox(width: 8),
@@ -305,7 +327,7 @@ class _BrowserPageState extends State<BrowserPage> {
                       onSubmitted: _navigateToUrl,
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: 'Search or enter URL...',
+                        hintText: constants.urlBarHintText, // Use constant
                         prefixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -322,6 +344,7 @@ class _BrowserPageState extends State<BrowserPage> {
                                 width: 16,
                                 height: 16,
                                 errorBuilder: (context, error, stackTrace) {
+                                  // Consider logging favicon error here if needed
                                   return const Icon(Icons.web, size: 16);
                                 },
                               )
@@ -347,9 +370,9 @@ class _BrowserPageState extends State<BrowserPage> {
                 return IconButton(
                   onPressed: isLoading ? null : () => _controller.reload(),
                   icon: isLoading 
-                      ? const Icon(Icons.stop, size: 20)
-                      : const Icon(Icons.refresh, size: 20),
-                  tooltip: isLoading ? 'Stop' : 'Refresh',
+                      ? const Icon(Icons.stop, size: constants.appBarIconSize) // Use constant
+                      : const Icon(Icons.refresh, size: constants.appBarIconSize), // Use constant
+                  tooltip: isLoading ? constants.stopButtonTooltip : constants.refreshButtonTooltip, // Use constants
                 );
               },
             ),
@@ -357,22 +380,22 @@ class _BrowserPageState extends State<BrowserPage> {
             // Clear data button
             IconButton(
               onPressed: _clearDataAndRestart,
-              icon: const Text('🔥', style: TextStyle(fontSize: 20)),
-              tooltip: 'Clear cache & restart',
+              icon: const Text(\'🔥\', style: TextStyle(fontSize: constants.appBarTextIconSize)), // Use constant
+              tooltip: constants.clearDataButtonTooltip, // Use constant
             ),
             
             // Settings button
             IconButton(
               onPressed: _showSettings,
-              icon: const Text('⚙', style: TextStyle(fontSize: 20)),
-              tooltip: 'Settings',
+              icon: const Text(\'⚙\', style: TextStyle(fontSize: constants.appBarTextIconSize)), // Use constant
+              tooltip: constants.settingsButtonTooltip, // Use constant
             ),
             
             // VPN status
             Container(
               margin: const EdgeInsets.only(left: 8),
               child: Text(
-                _vpnConnected ? '🟢' : '🔴',
+                SingBoxManager.isRunning ? constants.vpnConnectedText : constants.vpnDisconnectedText, // Use constants
                 style: const TextStyle(fontSize: 16),
               ),
             ),
